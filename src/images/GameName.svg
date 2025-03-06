@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="393" height="98" viewBox="0 0 393 98">
+  <defs>
+    <filter id="Union_26" x="0" y="0" width="393" height="98" filterUnits="userSpaceOnUse">
+      <feOffset dy="3" input="SourceAlpha"/>
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feFlood flood-opacity="0.161"/>
+      <feComposite operator="in" in2="blur"/>
+      <feComposite in="SourceGraphic"/>
+    </filter>
+  </defs>
+  <g id="Group_2745" data-name="Group 2745" transform="translate(10 -91)">
+    <g id="Group_303" data-name="Group 303" transform="translate(-1)">
+      <g transform="matrix(1, 0, 0, 1, -9, 91)" filter="url(#Union_26)">
+        <path id="Union_26-2" data-name="Union 26" d="M0,0H375V60a20,20,0,0,1-20,20H20A20,20,0,0,1,0,60Z" transform="translate(9 6)" fill="#fff"/>
+      </g>
+    </g>
+    <g id="Group_302" data-name="Group 302" transform="translate(1035 909)">
+      <g id="Group_2689" data-name="Group 2689" transform="translate(-7 -8.575)">
+        <g id="Group_301" data-name="Group 301" transform="translate(-1109 -862.425)">
+          <text id="リアクション_タイムテスト" data-name="リアクション タイムテスト" transform="translate(195 118)" fill="#15151e" font-size="12" font-family="YuGothicUI-Regular, Yu Gothic UI"><tspan x="0" y="0">リアクション</tspan><tspan y="0" font-family="SegoeUI, Segoe UI"> </tspan><tspan y="0">タイムテスト</tspan></text>
+        </g>
+        <text id="REACTION_TIME_TEST" data-name="REACTION TIME TEST" transform="translate(-841 -765.425)" fill="#e00400" font-size="20" font-family="SegoeUI, Segoe UI"><tspan x="-94.673" y="0">R</tspan><tspan y="0" fill="#000">EACTION TI</tspan><tspan y="0">M</tspan><tspan y="0" fill="#000">E TEST</tspan></text>
+      </g>
+    </g>
+  </g>
+</svg>
