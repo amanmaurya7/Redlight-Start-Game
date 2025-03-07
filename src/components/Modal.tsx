@@ -10,7 +10,7 @@ interface ModalProps {
   onMap: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onShare, onMap }) => {
+const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onShare }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isXsScreen = useMediaQuery(theme.breakpoints.down('xs'));
@@ -101,20 +101,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onS
         >
           もう一度遊ぶ
         </Button>
-        <Button 
-          fullWidth 
-          sx={{ 
-            bgcolor: "white", 
-            color: "black", 
-            borderRadius: "20px", 
-            width: isMobile ? "100%" : "200px", 
-            padding: isMobile ? "8px" : "10px",
-            fontSize: isXsScreen ? "0.8rem" : "inherit"
-          }} 
-          onClick={onMap}
-        >
-          マップに戻る
-        </Button>
+        
       </Box>
     </MuiModal>
   );
