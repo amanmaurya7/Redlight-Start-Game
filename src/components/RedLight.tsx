@@ -172,10 +172,9 @@ const RedLight: React.FC = () => {
         open={openModal}
         reactionTime={reactionTime}
         onClose={() => setOpenModal(false)}
-        onRetry={handleRestartGame}
-        onShare={() => alert("Share functionality coming soon!")}
-        onMap={() => alert("Returning to game...")}
-      />
+        onRetry={handleRestartGame} onMap={function (): void {
+          throw new Error("Function not implemented.");
+        } }      />
 
       {/* Bottom Navigation */}
       <Box sx={{ position: 'absolute', bottom: 0, width: '100%', zIndex: 10 }}>
