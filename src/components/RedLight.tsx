@@ -1,83 +1,130 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
-import Modal from "./Modal"; // Import the new modal component
-import BottomNav from "./BottomNav"; // Import the Bottom Navigation
-import Svg1 from "../images/1.svg";
-import Svg2 from "../images/2.svg";
-import Svg3 from "../images/3.svg";
-import Svg4 from "../images/4.svg";
-import Svg5 from "../images/5.svg";
-import Svg6 from "../images/6.svg";
-import Svg7 from "../images/7.svg";
-import StartHereButton from "../images/start-here.svg";
+import Modal from "./Modal";
+import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
 import GameName from "../images/GameName.svg";
+import StartHereButton from "../images/start-here.svg";
+import Svg7 from "../images/7.svg"; // Keep the initial screen image
 
-// Reordered array to start with Svg7 as the initial screen, then 1-6 for the sequence
-const initialSvg = Svg7;
-const sequenceImages = [Svg1, Svg2, Svg3, Svg4, Svg5, Svg6];
+// Now we only need Movie2 since Movie1 is not used
+import SecondVideo from '../assets/Movie2.mp4';
 
 const RedLight: React.FC = () => {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [currentSvgIndex, setCurrentSvgIndex] = useState<number | null>(null);
-  const [sequenceCompleted, setSequenceCompleted] = useState(false);
+  const [gameState, setGameState] = useState<'init' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
   const [reactionStartTime, setReactionStartTime] = useState<number | null>(null);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
+  const [buttonActive, setButtonActive] = useState(false);
   
+  // We only need one video reference now
+  const videoRef = useRef<HTMLVideoElement>(null);
+  // Add a timeupdate handler reference to avoid multiple listeners
+  const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
+
+  // Video playback and light detection - only trigger on actual playingVideo state, not during transition
+  useEffect(() => {
+    if (gameState === 'playingVideo' && videoRef.current) {
+      console.log("Starting to play video after transition");
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log("Video playing successfully"))
+          .catch(error => console.error("Error playing video:", error));
+      }
+
+      // Set up timeupdate event to detect when lights turn off
+      const timeUpdateHandler = (e: Event) => {
+        const video = e.target as HTMLVideoElement;
+        // Pause at the specified time when lights turn off
+        if (video.currentTime >= 5.12) {
+          console.log("Lights off detected, pausing video and activating tap button");
+          video.pause();
+          setGameState('waitingForTap');
+          setButtonActive(true);
+          setReactionStartTime(Date.now());
+          
+          // Remove the event listener once triggered
+          video.removeEventListener('timeupdate', timeUpdateHandler);
+          timeUpdateHandlerRef.current = null;
+        }
+      };
+      
+      // Store the handler and add it to the video element
+      timeUpdateHandlerRef.current = timeUpdateHandler;
+      videoRef.current.addEventListener('timeupdate', timeUpdateHandler);
+    } else if (gameState === 'continuingVideo' && videoRef.current) {
+      console.log("Continuing video playback");
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log("Video continuing successfully"))
+          .catch(error => console.error("Error continuing video:", error));
+      }
+    }
+
+    // Clean up event listeners when component unmounts or video changes
+    return () => {
+      if (videoRef.current && timeUpdateHandlerRef.current) {
+        videoRef.current.removeEventListener('timeupdate', timeUpdateHandlerRef.current);
+      }
+    };
+  }, [gameState]);
+
   const startGame = () => {
-    setGameStarted(true);
-    setCurrentSvgIndex(0);
-    setSequenceCompleted(false);
-    setReactionStartTime(null);
-    setReactionTime(null);
+    console.log("Starting game - transition sequence");
+    
+    // First set state to starting to begin transition
+    setGameState('starting');
+    setButtonActive(false); // Make button inactive initially
+    
+    // Prepare video but don't play it yet
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.pause(); // Ensure video is paused during transition
+    }
+    
+    // After the fade effect completes, set to playing video state
+    // This will trigger the useEffect to start playing the video
+    setTimeout(() => {
+      console.log("Transition complete, starting video");
+      setGameState('playingVideo');
+    }, 1500); // Match this to the duration of the fade animation
   };
 
-  useEffect(() => {
-    if (!gameStarted) return;
-
-    const interval = setInterval(() => {
-      setCurrentSvgIndex((prevIndex) => {
-        if (prevIndex === null) return 0;
-        if (prevIndex >= sequenceImages.length - 1) {
-          clearInterval(interval);
-          setSequenceCompleted(true);
-          setReactionStartTime(Date.now()); // Start reaction time tracking
-          return prevIndex;
-        }
-        return prevIndex + 1;
-      });
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [gameStarted]);
-
+  // Handle tap button click
   const handleTapClick = () => {
-    // Only work if we're at the last SVG (Svg6) and sequence is completed
-    if (sequenceCompleted && reactionStartTime && currentSvgIndex === sequenceImages.length - 1) {
+    if (gameState === 'waitingForTap' && buttonActive && reactionStartTime) {
       const timeDiff = Date.now() - reactionStartTime;
       setReactionTime(timeDiff);
-      setOpenModal(true);
+      setGameState('continuingVideo');
+      
+      if (videoRef.current) {
+        // Continue from the current position
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Video continuation failed:", error);
+          });
+        }
+      }
     }
   };
 
+  // Video ended handler
+  const handleVideoEnd = () => {
+    setGameState('results');
+    setOpenModal(true);
+  };
+
   const handleRestartGame = () => {
-    setGameStarted(false);
-    setCurrentSvgIndex(null);
-    setSequenceCompleted(false);
+    setGameState('init');
     setReactionTime(null);
     setReactionStartTime(null);
     setOpenModal(false);
+    setButtonActive(false);
   };
-
-  // Determine which SVG to show
-  const currentSvg = gameStarted ? sequenceImages[currentSvgIndex!] : initialSvg;
-  
-  // Show Start button only on initial screen (Svg7)
-  const showStartButton = !gameStarted;
-  
-  // Show Tap button only when we're at the last SVG (Svg6) and sequence is completed
-  const showTapButton = gameStarted && sequenceCompleted && currentSvgIndex === sequenceImages.length - 1;
 
   return (
     <Box
@@ -105,7 +152,7 @@ const RedLight: React.FC = () => {
         }}
       />
 
-      {/* Light Sequence & Start/Tap Button */}
+      {/* Video/Image Container */}
       <Box
         sx={{
           position: "absolute",
@@ -118,38 +165,74 @@ const RedLight: React.FC = () => {
           justifyContent: "center",
         }}
       >
-        <img
-          src={currentSvg}
-          alt="Red Light"
-          style={{ 
-            position: "absolute", 
-            top: 0, 
-            left: 0, 
-            width: "100%", 
-            height: "100%", 
-            objectFit: "cover",
-            zIndex: 1 
-          }}
-        />
+        {/* Initial screen - with fade-out animation when state changes */}
+        {(gameState === 'init' || gameState === 'starting') && (
+          <img
+            src={Svg7}
+            alt="Initial Screen"
+            style={{ 
+              position: "absolute", 
+              top: 0, 
+              left: 0, 
+              width: "100%", 
+              height: "100%", 
+              objectFit: "cover",
+              zIndex: gameState === 'starting' ? 3 : 1, // Put above video during transition
+              opacity: gameState === 'starting' ? 0 : 1, // Fade out on transition
+              transition: "opacity 1s ease-in-out",
+            }}
+          />
+        )}
+
+        {/* Video (load during transition but don't play yet) */}
+        {(gameState !== 'init') && (
+          <video 
+            ref={videoRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              zIndex: 1,
+              opacity: gameState === 'starting' ? 0 : 1, // Fade in after transition
+              transition: "opacity 0.1s ease-in-out",
+              transitionDelay: gameState === 'starting' ? "0s" : "0.1s", // Delay video appearance slightly
+            }}
+            onEnded={handleVideoEnd}
+            muted
+            playsInline
+            preload="auto"
+          >
+            <source src={SecondVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        )}
         
-        {showStartButton && (
+        {/* Start button on initial screen - with fade animation */}
+        {(gameState === 'init' || gameState === 'starting') && (
           <Box
             component="img"
             src={StartHereButton}
             alt="Start Here"
             sx={{
               position: "absolute",
-              zIndex: 2,
+              zIndex: 4, // Above everything during transition
               width: "300px",
               height: "auto",
-              cursor: "pointer",
+              cursor: gameState === 'starting' ? "default" : "pointer",
               bottom: "20%",
+              opacity: gameState === 'starting' ? 0 : 1, // Fade out on transition
+              transition: "opacity 0.1s ease-in-out", // Fade out faster than background
+              pointerEvents: gameState === 'starting' ? "none" : "auto", // Disable click during transition
             }}
-            onClick={startGame}
+            onClick={gameState === 'init' ? startGame : undefined}
           />
         )}
 
-        {showTapButton && (
+        {/* Tap button shown throughout video but with different opacity */}
+        {(gameState === 'playingVideo' || gameState === 'waitingForTap' || gameState === 'continuingVideo') && (
           <Box
             component="img"
             src={TapHereButton}
@@ -157,12 +240,15 @@ const RedLight: React.FC = () => {
             sx={{
               position: "absolute",
               zIndex: 2,
-              width: "100px",
+              width: "120px",
               height: "auto",
-              cursor: "pointer",
-              bottom: "20%",
+              cursor: buttonActive ? "pointer" : "default",
+              bottom: "15%",
+              opacity: buttonActive ? 1 : 0.5, // Transparent when inactive
+              animation: buttonActive ? "pulse 1.5s infinite" : "none", // Only pulse when active
+              transition: "opacity 0.3s ease-in-out",
             }}
-            onClick={handleTapClick}
+            onClick={buttonActive ? handleTapClick : undefined}
           />
         )}
       </Box>
@@ -172,9 +258,9 @@ const RedLight: React.FC = () => {
         open={openModal}
         reactionTime={reactionTime}
         onClose={() => setOpenModal(false)}
-        onRetry={handleRestartGame} onMap={function (): void {
-          throw new Error("Function not implemented.");
-        } }      />
+        onRetry={handleRestartGame}
+        onMap={() => {}}
+      />
 
       {/* Bottom Navigation */}
       <Box sx={{ position: 'absolute', bottom: 0, width: '100%', zIndex: 10 }}>
