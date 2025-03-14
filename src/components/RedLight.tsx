@@ -4,9 +4,9 @@ import { Box } from "@mui/material";
 import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
-import GameName from "../images/GameName.svg";
 import StartHereButton from "../images/start-here.svg";
 import Svg7 from "../images/7.svg"; // Keep the initial screen image
+import HeaderSvg from "../images/header.svg"; // Import the header SVG
 
 // Now we only need Movie2 since Movie1 is not used
 import SecondVideo from '../assets/Movie2.mp4';
@@ -137,20 +137,22 @@ const RedLight: React.FC = () => {
         margin: 0,
       }}
     >
-      {/* Game Name Header */}
+      {/* Header SVG */}
       <Box
         component="img"
-        src={GameName}
-        alt="Game Name"
+        src={HeaderSvg}
+        alt="Header"
         sx={{
-          width: "78.7%",
+          width: "100%",
           position: "absolute",
-          top: -7,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 10,
+          top: 0,
+          left: 0,
+          zIndex: 100, // Make sure it's above everything
         }}
       />
+
+      {/* Game Name Header - Adjusted positioning to account for the header SVG */}
+      
 
       {/* Video/Image Container */}
       <Box

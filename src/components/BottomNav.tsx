@@ -11,6 +11,15 @@ const BottomNav: React.FC = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
+    // Common styles for all navigation actions
+    const navActionSx = {
+        "& .MuiBottomNavigationAction-label": { 
+            color: "white",
+            fontSize: isMobile ? "0.7rem" : "0.75rem" 
+        },
+        padding: isMobile ? "6px 0" : "8px 12px" 
+    };
+
     return (
         <Paper 
             sx={{ 
@@ -36,44 +45,22 @@ const BottomNav: React.FC = () => {
                 <BottomNavigationAction 
                     label="Home" 
                     icon={<img src={HomeIcon} alt="Home" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={{ 
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: isMobile ? "0.7rem" : "0.75rem" 
-                        },
-                        padding: isMobile ? "6px 0" : "8px 12px" 
-                    }} 
+                    sx={navActionSx} 
                 />
                 <BottomNavigationAction 
                     label="Circuit" 
                     icon={<img src={CircuitIcon} alt="Circuit" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={{ 
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: isMobile ? "0.7rem" : "0.75rem" 
-                        },
-                        padding: isMobile ? "6px 0" : "8px 12px" 
-                    }} 
+                    sx={navActionSx} 
                 />
                 <BottomNavigationAction 
                     label="Driver" 
                     icon={<img src={DriverIcon} alt="Driver" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={{ 
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: isMobile ? "0.7rem" : "0.75rem" 
-                        },
-                        padding: isMobile ? "6px 0" : "8px 12px"  
-                    }} 
+                    sx={navActionSx} 
                 />
                 <BottomNavigationAction 
+                    label="Menu"
                     icon={<img src={MenuIcon} alt="Menu" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={{ 
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white" 
-                        },
-                        padding: isMobile ? "6px 0" : "8px 12px" 
-                    }} 
+                    sx={navActionSx} 
                 />
             </BottomNavigation>
         </Paper>
