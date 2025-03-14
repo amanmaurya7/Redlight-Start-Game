@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
-import { BottomNavigation, BottomNavigationAction, Paper, useMediaQuery, useTheme } from "@mui/material";
+import { Box, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 
 import HomeIcon from "../images/home-icon.svg";
 import CircuitIcon from "../images/circuit-icon.svg";
@@ -8,17 +9,6 @@ import DriverIcon from "../images/driver-icon.svg";
 
 const BottomNav: React.FC = () => {
     const [value, setValue] = React.useState(0);
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-    // Common styles for all navigation actions
-    const navActionSx = {
-        "& .MuiBottomNavigationAction-label": { 
-            color: "white",
-            fontSize: isMobile ? "0.7rem" : "0.75rem" 
-        },
-        padding: isMobile ? "6px 0" : "8px 12px" 
-    };
 
     return (
         <Paper 
@@ -27,10 +17,11 @@ const BottomNav: React.FC = () => {
                 bottom: 0, 
                 left: 0, 
                 right: 0, 
-                zIndex: 3, 
-                width: "100%" 
+                zIndex: 1000, 
+                width: "100%",
+                borderRadius: 0,
             }} 
-            elevation={3}
+            elevation={0}
         >
             <BottomNavigation
                 value={value}
@@ -39,28 +30,60 @@ const BottomNav: React.FC = () => {
                 sx={{ 
                     backgroundColor: "#ff0000", 
                     color: "white",
-                    height: isMobile ? "56px" : "64px"
+                    height: "56px",
                 }}
             >
                 <BottomNavigationAction 
-                    label="Home" 
-                    icon={<img src={HomeIcon} alt="Home" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={navActionSx} 
+                    label="HOME" 
+                    icon={<img src={HomeIcon} alt="Home" width={20} height={20} />} 
+                    sx={{ 
+                        color: "white",
+                        "& .MuiBottomNavigationAction-label": { 
+                            color: "white",
+                            fontSize: "0.7rem",
+                            fontWeight: "bold",
+                            marginTop: "4px"
+                        },
+                    }} 
                 />
                 <BottomNavigationAction 
-                    label="Circuit" 
-                    icon={<img src={CircuitIcon} alt="Circuit" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={navActionSx} 
+                    label="DRIVER" 
+                    icon={<img src={DriverIcon} alt="Driver" width={20} height={20} />} 
+                    sx={{ 
+                        color: "white",
+                        "& .MuiBottomNavigationAction-label": { 
+                            color: "white",
+                            fontSize: "0.7rem",
+                            fontWeight: "bold",
+                            marginTop: "4px"
+                        },
+                    }} 
                 />
                 <BottomNavigationAction 
-                    label="Driver" 
-                    icon={<img src={DriverIcon} alt="Driver" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={navActionSx} 
+                    label="CIRCUIT" 
+                    icon={<img src={CircuitIcon} alt="Circuit" width={20} height={20} />} 
+                    sx={{ 
+                        color: "white",
+                        "& .MuiBottomNavigationAction-label": { 
+                            color: "white",
+                            fontSize: "0.7rem",
+                            fontWeight: "bold",
+                            marginTop: "4px"
+                        },
+                    }} 
                 />
                 <BottomNavigationAction 
-                    label="Menu"
-                    icon={<img src={MenuIcon} alt="Menu" width={isMobile ? 20 : 24} height={isMobile ? 20 : 24} />} 
-                    sx={navActionSx} 
+                    label="MENU"
+                    icon={<img src={MenuIcon} alt="Menu" width={20} height={20} />} 
+                    sx={{ 
+                        color: "white",
+                        "& .MuiBottomNavigationAction-label": { 
+                            color: "white",
+                            fontSize: "0.7rem",
+                            fontWeight: "bold",
+                            marginTop: "4px"
+                        },
+                    }} 
                 />
             </BottomNavigation>
         </Paper>

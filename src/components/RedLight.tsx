@@ -1,14 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
-import StartHereButton from "../images/start-here.svg";
-import Svg7 from "../images/7.svg"; // Keep the initial screen image
-import HeaderSvg from "../images/header.svg"; // Import the header SVG
+import Svg7 from "../images/7.svg"; // Initial screen background image
+import HeaderSvg from "../images/header.svg"; // Header SVG
 
-// Now we only need Movie2 since Movie1 is not used
 import SecondVideo from '../assets/Movie2.mp4';
 
 const RedLight: React.FC = () => {
@@ -18,12 +16,10 @@ const RedLight: React.FC = () => {
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
   
-  // We only need one video reference now
   const videoRef = useRef<HTMLVideoElement>(null);
-  // Add a timeupdate handler reference to avoid multiple listeners
   const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
 
-  // Video playback and light detection - only trigger on actual playingVideo state, not during transition
+  // Video playback and light detection
   useEffect(() => {
     if (gameState === 'playingVideo' && videoRef.current) {
       console.log("Starting to play video after transition");
@@ -38,7 +34,7 @@ const RedLight: React.FC = () => {
       const timeUpdateHandler = (e: Event) => {
         const video = e.target as HTMLVideoElement;
         // Pause at the specified time when lights turn off
-        if (video.currentTime >= 5.12) {
+        if (video.currentTime >= 5.13) {
           console.log("Lights off detected, pausing video and activating tap button");
           video.pause();
           setGameState('waitingForTap');
@@ -86,7 +82,6 @@ const RedLight: React.FC = () => {
     }
     
     // After the fade effect completes, set to playing video state
-    // This will trigger the useEffect to start playing the video
     setTimeout(() => {
       console.log("Transition complete, starting video");
       setGameState('playingVideo');
@@ -135,58 +130,121 @@ const RedLight: React.FC = () => {
         position: 'relative',
         padding: 0,
         margin: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#242424', // Match the dark background from the design
       }}
     >
-      {/* Header SVG */}
+      {/* Header - Using the provided HeaderSVG */}
       <Box
         component="img"
         src={HeaderSvg}
         alt="Header"
         sx={{
-          width: "100%",
+          width: "105%",
           position: "absolute",
-          top: 0,
-          left: 0,
-          zIndex: 100, // Make sure it's above everything
+          top: -7,
+          left: -11,
+          zIndex: 100,
         }}
       />
 
-      {/* Game Name Header - Adjusted positioning to account for the header SVG */}
-      
-
-      {/* Video/Image Container */}
+      {/* Game Content Container */}
       <Box
         sx={{
-          position: "absolute",
+          position: "relative",
           width: "100%",
           height: "100%",
-          top: 0,
-          left: 0,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "space-between",
+          flex: 1,
         }}
       >
         {/* Initial screen - with fade-out animation when state changes */}
         {(gameState === 'init' || gameState === 'starting') && (
-          <img
-            src={Svg7}
-            alt="Initial Screen"
-            style={{ 
-              position: "absolute", 
-              top: 0, 
-              left: 0, 
-              width: "100%", 
-              height: "100%", 
-              objectFit: "cover",
-              zIndex: gameState === 'starting' ? 3 : 1, // Put above video during transition
-              opacity: gameState === 'starting' ? 0 : 1, // Fade out on transition
+          <Box
+            sx={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              zIndex: gameState === 'starting' ? 3 : 1,
+              opacity: gameState === 'starting' ? 0 : 1,
               transition: "opacity 1s ease-in-out",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              background: "linear-gradient(to bottom, #ff6b6b 0%, #c23616 50%, #192a56 100%)",
             }}
-          />
+          >
+            <Box
+              component="img"
+              src={Svg7}
+              alt="F1 Car"
+              sx={{
+                height: "100%",
+                width: "110%",
+                maxWidth: "450px",
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                zIndex: 2,
+              }}
+            />
+            
+            {/* Start Button */}
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: "25%",
+                width: "100%",
+                display: "flex",
+                justifyContent: "center",
+                zIndex: 4,
+                opacity: gameState === 'starting' ? 0 : 1,
+                transition: "opacity 0.5s ease-in-out",
+              }}
+            >
+              <Box
+                component="button"
+                onClick={gameState === 'init' ? startGame : undefined}
+                sx={{
+                  width: "80%",
+                  maxWidth: "280px",
+                  height: "48px",
+                  borderRadius: "24px",
+                  backgroundColor: "#f5f6fa",
+                  color: "#2f3640",
+                  border: "none",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "#dcdde1",
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 6px 8px rgba(0, 0, 0, 0.15)",
+                  },
+                  "&:active": {
+                    transform: "translateY(1px)",
+                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
+                  },
+                }}
+              >
+                START
+              </Box>
+            </Box>
+           
+          </Box>
         )}
 
-        {/* Video (load during transition but don't play yet) */}
+        {/* Video Element */}
         {(gameState !== 'init') && (
           <video 
             ref={videoRef}
@@ -198,9 +256,8 @@ const RedLight: React.FC = () => {
               height: "100%",
               objectFit: "cover",
               zIndex: 1,
-              opacity: gameState === 'starting' ? 0 : 1, // Fade in after transition
-              transition: "opacity 0.1s ease-in-out",
-              transitionDelay: gameState === 'starting' ? "0s" : "0.1s", // Delay video appearance slightly
+              opacity: gameState === 'starting' ? 0 : 1,
+              transition: "opacity 0.5s ease-in-out",
             }}
             onEnded={handleVideoEnd}
             muted
@@ -212,28 +269,7 @@ const RedLight: React.FC = () => {
           </video>
         )}
         
-        {/* Start button on initial screen - with fade animation */}
-        {(gameState === 'init' || gameState === 'starting') && (
-          <Box
-            component="img"
-            src={StartHereButton}
-            alt="Start Here"
-            sx={{
-              position: "absolute",
-              zIndex: 4, // Above everything during transition
-              width: "300px",
-              height: "auto",
-              cursor: gameState === 'starting' ? "default" : "pointer",
-              bottom: "20%",
-              opacity: gameState === 'starting' ? 0 : 1, // Fade out on transition
-              transition: "opacity 0.1s ease-in-out", // Fade out faster than background
-              pointerEvents: gameState === 'starting' ? "none" : "auto", // Disable click during transition
-            }}
-            onClick={gameState === 'init' ? startGame : undefined}
-          />
-        )}
-
-        {/* Tap button shown throughout video but with different opacity */}
+        {/* Tap button shown during video playback */}
         {(gameState === 'playingVideo' || gameState === 'waitingForTap' || gameState === 'continuingVideo') && (
           <Box
             component="img"
@@ -245,9 +281,11 @@ const RedLight: React.FC = () => {
               width: "120px",
               height: "auto",
               cursor: buttonActive ? "pointer" : "default",
-              bottom: "15%",
-              opacity: buttonActive ? 1 : 0.5, // Transparent when inactive
-              animation: buttonActive ? "pulse 1.5s infinite" : "none", // Only pulse when active
+              bottom: "18%",
+              left: "35%",
+             
+              opacity: buttonActive ? 1 : 0.5,
+              animation: buttonActive ? "pulse 1.5s infinite" : "none",
               transition: "opacity 0.3s ease-in-out",
             }}
             onClick={buttonActive ? handleTapClick : undefined}

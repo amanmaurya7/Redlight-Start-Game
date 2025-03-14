@@ -1,89 +1,84 @@
-"use client"
-
-import type React from "react"
-import { useState, useRef, useCallback } from "react"
-import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton } from "@mui/material"
-import { Share2, Download } from "lucide-react"
-import CloseIcon from "@mui/icons-material/Close"
-import html2canvas from "html2canvas"
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useRef, useCallback } from "react";
+import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton } from "@mui/material";
+import { Share2, Download } from "lucide-react";
+import CloseIcon from "@mui/icons-material/Close";
+import html2canvas from "html2canvas";
 
 interface ModalProps {
-  open: boolean
-  reactionTime: number | null
-  onClose: () => void
-  onRetry: () => void
-  onMap: () => void
+  open: boolean;
+  reactionTime: number | null;
+  onClose: () => void;
+  onRetry: () => void;
+  onMap: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) => {
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"))
-  const [shareModalOpen, setShareModalOpen] = useState(false)
-  const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
-  const scoreRef = useRef<HTMLDivElement>(null)
+const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onMap }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null);
+  const scoreRef = useRef<HTMLDivElement>(null);
 
   const generateScoreCard = useCallback(async () => {
     try {
       if (scoreRef.current) {
-        const canvas = await html2canvas(scoreRef.current)
-        const imageUrl = canvas.toDataURL("image/png")
-        setScoreImageUrl(imageUrl)
-        return imageUrl
+        const canvas = await html2canvas(scoreRef.current);
+        const imageUrl = canvas.toDataURL("image/png");
+        setScoreImageUrl(imageUrl);
+        return imageUrl;
       }
-      return null
+      return null;
     } catch (error) {
-      console.error("Failed to generate score card:", error)
-      return null
+      console.error("Failed to generate score card:", error);
+      return null;
     }
-  }, [])
+  }, []);
 
   const handleShareClick = async () => {
-    const imageUrl = await generateScoreCard()
+    const imageUrl = await generateScoreCard();
     if (imageUrl) {
-      setShareModalOpen(true)
+      setShareModalOpen(true);
     }
-  }
+  };
 
   const shareScore = async () => {
-    if (!scoreImageUrl) return
+    if (!scoreImageUrl) return;
 
-    const shareText = `My reaction time is ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}!`
+    const shareText = `My reaction time is ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}!`;
 
     try {
-      // Try using the Web Share API if available
       if (navigator.share) {
-        const res = await fetch(scoreImageUrl)
-        const blob = await res.blob()
-        const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
+        const res = await fetch(scoreImageUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "reaction-time-score.png", { type: "image/png" });
         
         await navigator.share({
           title: "My Reaction Time Result",
           text: shareText,
           files: [file],
-        })
-        setShareModalOpen(false)
+        });
+        setShareModalOpen(false);
       } else {
-        // Fallback - just download the image
-        downloadImage()
+        downloadImage();
       }
     } catch (error) {
-      console.error("Error sharing:", error)
-      // Fallback to download if sharing fails
-      downloadImage()
+      console.error("Error sharing:", error);
+      downloadImage();
     }
-  }
+  };
 
   const downloadImage = () => {
-    if (!scoreImageUrl) return
+    if (!scoreImageUrl) return;
     
-    const downloadLink = document.createElement("a")
-    downloadLink.href = scoreImageUrl
-    downloadLink.download = "reaction-time-score.png"
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    document.body.removeChild(downloadLink)
-  }
+    const downloadLink = document.createElement("a");
+    downloadLink.href = scoreImageUrl;
+    downloadLink.download = "reaction-time-score.png";
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
 
   return (
     <>
@@ -94,91 +89,144 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          padding: isMobile ? 2 : 0,
+          backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+        }}
+        BackdropProps={{
+          style: { backgroundColor: "transparent" } // Make backdrop transparent to see the background
         }}
       >
         <Box
           sx={{
-            width: isMobile ? "90%" : 320,
-            maxWidth: "90vw",
-            bgcolor: "#333",
-            borderRadius: 2,
-            p: isMobile ? 2 : 3,
-            textAlign: "center",
-            color: "white",
-            boxShadow: 24,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
             position: "relative",
+            bgcolor: "transparent",
           }}
         >
-          <Box ref={scoreRef}>
-            <Typography variant={isMobile ? "body2" : "subtitle1"}>スタートアナリシス</Typography>
-            <Typography
-              variant={isMobile ? "h6" : "h5"}
-              fontWeight="bold"
+          <Box
+            sx={{
+              width: isMobile ? "100%" : "90%",
+              maxWidth: "400px",
+              bgcolor: "rgba(0, 0, 0, 0.85)", // Semi-transparent dark background
+              borderRadius: 2,
+              p: 3,
+              textAlign: "center",
+              color: "white",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <Box ref={scoreRef} sx={{ width: "100%" }}>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  color: "white",
+                  fontSize: "14px",
+                  mb: 0.5
+                }}
+              >
+                スタートアナリシス
+              </Typography>
+              
+              <Typography
+                variant="h5"
+                sx={{
+                  mb: 2,
+                  letterSpacing: 1,
+                  fontWeight: "bold",
+                  color: "white",
+                  fontSize: "22px"
+                }}
+              >
+                START ANALYSIS
+              </Typography>
+              
+              <Typography
+                sx={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: "#ff6699",
+                  mb: 0.5
+                }}
+              >
+                TIME
+              </Typography>
+              
+              <Typography
+                sx={{
+                  fontSize: isMobile ? 50 : 60,
+                  fontWeight: "bold",
+                  color: "#ff6699",
+                  textShadow: "0 0 15px #ff6699",
+                  mb: 3,
+                  lineHeight: 1
+                }}
+              >
+                {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+              </Typography>
+            </Box>
+            
+            <Button
+              fullWidth
               sx={{
                 mb: 1.5,
-                letterSpacing: 1,
+                bgcolor: "#666",
+                color: "white",
+                borderRadius: "24px",
+                padding: "12px",
+                fontSize: "14px",
+                fontWeight: "normal",
+                textTransform: "none",
+                width: "90%",
+                "&:hover": { bgcolor: "#777" },
               }}
+              onClick={handleShareClick}
             >
-              START ANALYSIS
-            </Typography>
-            <Typography
+              SNSでシェアする
+            </Button>
+            
+            <Button
+              fullWidth
               sx={{
-                fontSize: isMobile ? 16 : 20,
-                fontWeight: "bold",
-                color: "#ff6699",
-                textShadow: "0 0 15px #ff6699",
+                mb: 1.5,
+                bgcolor: "#666",
+                color: "white",
+                borderRadius: "24px",
+                padding: "12px",
+                fontSize: "14px",
+                fontWeight: "normal",
+                textTransform: "none",
+                width: "90%",
+                "&:hover": { bgcolor: "#777" },
               }}
+              onClick={onRetry}
             >
-              TIME
-            </Typography>
-            <Box
+              もう一度遊ぶ
+            </Button>
+            
+            <Button
+              fullWidth
               sx={{
-                fontSize: isMobile ? 48 : 60,
-                fontWeight: "bold",
-                color: "#ff6699",
-                textShadow: "0 0 15px #ff6699",
-                mb: 2,
+                bgcolor: "#666",
+                color: "white",
+                borderRadius: "24px",
+                padding: "12px",
+                fontSize: "14px",
+                fontWeight: "normal",
+                textTransform: "none",
+                width: "90%",
+                "&:hover": { bgcolor: "#777" },
               }}
+              onClick={onMap}
             >
-              {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)} s` : "--"}
-            </Box>
+              マップに戻る
+            </Button>
           </Box>
-          
-          <Button
-            fullWidth
-            sx={{
-              mb: 1.5,
-              bgcolor: "#666",
-              color: "white",
-              borderRadius: "20px",
-              width: isMobile ? "100%" : "200px",
-              padding: isMobile ? "8px" : "10px",
-              fontSize: isXsScreen ? "0.8rem" : "inherit",
-              "&:hover": { bgcolor: "#777" },
-            }}
-            onClick={handleShareClick}
-          >
-            SNSでシェアする
-          </Button>
-          <Button
-            fullWidth
-            sx={{
-              mb: 1.5,
-              bgcolor: "#666",
-              color: "white",
-              borderRadius: "20px",
-              width: isMobile ? "100%" : "200px",
-              padding: isMobile ? "8px" : "10px",
-              fontSize: isXsScreen ? "0.8rem" : "inherit",
-              "&:hover": { bgcolor: "#777" },
-            }}
-            onClick={onRetry}
-          >
-            もう一度遊ぶ
-          </Button>
-          
-          
         </Box>
       </MuiModal>
 
@@ -294,8 +342,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
         </Box>
       </MuiModal>
     </>
-  )
-}
+  );
+};
 
-export default Modal
-
+export default Modal;
