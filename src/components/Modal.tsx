@@ -1,84 +1,87 @@
+"use client"
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useRef, useCallback } from "react";
-import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton } from "@mui/material";
-import { Share2, Download } from "lucide-react";
-import CloseIcon from "@mui/icons-material/Close";
-import html2canvas from "html2canvas";
+import type React from "react"
+import { useState, useRef, useCallback } from "react"
+import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton } from "@mui/material"
+import { Share2, Download } from "lucide-react"
+import CloseIcon from "@mui/icons-material/Close"
+import html2canvas from "html2canvas"
+import backgroundImage from "../images/7.svg" // Import SVG directly
 
 interface ModalProps {
-  open: boolean;
-  reactionTime: number | null;
-  onClose: () => void;
-  onRetry: () => void;
-  onMap: () => void;
+  open: boolean
+  reactionTime: number | null
+  onClose: () => void
+  onRetry: () => void
+  onMap: () => void
 }
 
 const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onMap }) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isXsScreen = useMediaQuery(theme.breakpoints.down("xs"));
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null);
-  const scoreRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
+  const scoreRef = useRef<HTMLDivElement>(null)
 
   const generateScoreCard = useCallback(async () => {
     try {
       if (scoreRef.current) {
-        const canvas = await html2canvas(scoreRef.current);
-        const imageUrl = canvas.toDataURL("image/png");
-        setScoreImageUrl(imageUrl);
-        return imageUrl;
+        const canvas = await html2canvas(scoreRef.current)
+        const imageUrl = canvas.toDataURL("image/png")
+        setScoreImageUrl(imageUrl)
+        return imageUrl
       }
-      return null;
+      return null
     } catch (error) {
-      console.error("Failed to generate score card:", error);
-      return null;
+      console.error("Failed to generate score card:", error)
+      return null
     }
-  }, []);
+  }, [])
 
   const handleShareClick = async () => {
-    const imageUrl = await generateScoreCard();
+    const imageUrl = await generateScoreCard()
     if (imageUrl) {
-      setShareModalOpen(true);
+      setShareModalOpen(true)
     }
-  };
+  }
 
   const shareScore = async () => {
-    if (!scoreImageUrl) return;
+    if (!scoreImageUrl) return
 
-    const shareText = `My reaction time is ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}!`;
+    const shareText = `My reaction time is ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}!`
 
     try {
       if (navigator.share) {
-        const res = await fetch(scoreImageUrl);
-        const blob = await res.blob();
-        const file = new File([blob], "reaction-time-score.png", { type: "image/png" });
-        
+        const res = await fetch(scoreImageUrl)
+        const blob = await res.blob()
+        const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
+
         await navigator.share({
           title: "My Reaction Time Result",
           text: shareText,
           files: [file],
-        });
-        setShareModalOpen(false);
+        })
+        setShareModalOpen(false)
       } else {
-        downloadImage();
+        downloadImage()
       }
     } catch (error) {
-      console.error("Error sharing:", error);
-      downloadImage();
+      console.error("Error sharing:", error)
+      downloadImage()
     }
-  };
+  }
 
   const downloadImage = () => {
-    if (!scoreImageUrl) return;
-    
-    const downloadLink = document.createElement("a");
-    downloadLink.href = scoreImageUrl;
-    downloadLink.download = "reaction-time-score.png";
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
-  };
+    if (!scoreImageUrl) return
+
+    const downloadLink = document.createElement("a")
+    downloadLink.href = scoreImageUrl
+    downloadLink.download = "reaction-time-score.png"
+    document.body.appendChild(downloadLink)
+    downloadLink.click()
+    document.body.removeChild(downloadLink)
+  }
 
   return (
     <>
@@ -89,11 +92,25 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
+          width: "100%",
+          height: "calc(100% - 120px)",
+          top: "60px",
+          position: "absolute",
+          backgroundColor: "transparent",
+          zIndex: 1, // Very low z-index to stay behind header/footer
         }}
         BackdropProps={{
-          style: { backgroundColor: "transparent" } // Make backdrop transparent to see the background
+          style: { 
+            backgroundColor: "transparent",
+            position: "absolute",
+            top: "60px",
+            height: "calc(100% - 120px)",
+          }
         }}
+        hideBackdrop={true} // Hide default backdrop
+        disableAutoFocus
+        disableEnforceFocus
+        disablePortal // Try rendering in place instead of in a portal
       >
         <Box
           sx={{
@@ -105,122 +122,142 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             justifyContent: "center",
             position: "relative",
             bgcolor: "transparent",
+            backgroundImage: `url(${backgroundImage})`,
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            overflow: "auto",
+            zIndex: 2, // Keep this still low
           }}
         >
           <Box
             sx={{
               width: isMobile ? "100%" : "90%",
               maxWidth: "400px",
-              bgcolor: "rgba(0, 0, 0, 0.85)", // Semi-transparent dark background
-              borderRadius: 2,
+              bgcolor: "rgba(0, 0, 0, 0.7)",
+              borderRadius: 0,
               p: 3,
               textAlign: "center",
+              height: "100%",
               color: "white",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
+              my: 2,
+              zIndex: 3, // Higher than background
             }}
           >
             <Box ref={scoreRef} sx={{ width: "100%" }}>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
+              <Typography
+                variant="subtitle1"
+                sx={{
                   color: "white",
-                  fontSize: "14px",
-                  mb: 0.5
+                  fontSize: "16px",
+                  marginTop: "20px",
+                  marginBottom: "70px",
+                  mb: 0.5,
                 }}
               >
-                スタートアナリシス
+                スタート アナリシス
               </Typography>
-              
+
               <Typography
                 variant="h5"
                 sx={{
                   mb: 2,
                   letterSpacing: 1,
-                  fontWeight: "bold",
                   color: "white",
-                  fontSize: "22px"
+                  marginBottom: "60px",
+                  fontSize: "30px", // Larger font size to match image
                 }}
               >
                 START ANALYSIS
               </Typography>
-              
+
               <Typography
                 sx={{
-                  fontSize: 14,
+                  fontSize: 20,
                   fontWeight: "500",
                   color: "#ff6699",
-                  mb: 0.5
+                  marginBottom: "50px",
+                  mb: 0.5,
                 }}
               >
                 TIME
               </Typography>
-              
+
               <Typography
                 sx={{
-                  fontSize: isMobile ? 50 : 60,
-                  fontWeight: "bold",
+                  fontSize: isMobile ? 80 : 80, // Larger font size to match image
                   color: "#ff6699",
-                  textShadow: "0 0 15px #ff6699",
+                  marginTop: "25px",
+                  marginBottom: "150px",
+                  textShadow: "0 0 20px #ff6699", // Enhanced glowing effect to match image
                   mb: 3,
-                  lineHeight: 1
+                  lineHeight: 1,
                 }}
               >
                 {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
               </Typography>
             </Box>
-            
+
+            {/* Share on SNS Button - Updated to match image */}
             <Button
               fullWidth
               sx={{
                 mb: 1.5,
-                bgcolor: "#666",
+                bgcolor: "#3D4658", // Semi-transparent gray to match image
                 color: "white",
-                borderRadius: "24px",
+                borderRadius: "24px", // Rounded corners
                 padding: "12px",
-                fontSize: "14px",
+                marginTop: "50px",
+                marginBottom: "30px",
+                fontSize: "16px",
                 fontWeight: "normal",
                 textTransform: "none",
-                width: "90%",
-                "&:hover": { bgcolor: "#777" },
+                width: "60%",
+                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" }, // Hover effect
               }}
               onClick={handleShareClick}
             >
               SNSでシェアする
             </Button>
-            
+
+            {/* Play Again Button - Updated to match image */}
             <Button
               fullWidth
               sx={{
                 mb: 1.5,
-                bgcolor: "#666",
+                bgcolor: "rgba(100, 100, 100, 0.7)", // Semi-transparent gray to match image
                 color: "white",
                 borderRadius: "24px",
+                marginBottom: "30px",
                 padding: "12px",
-                fontSize: "14px",
+                fontSize: "16px",
                 fontWeight: "normal",
                 textTransform: "none",
-                width: "90%",
-                "&:hover": { bgcolor: "#777" },
+                width: "60%",
+                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
               }}
               onClick={onRetry}
             >
               もう一度遊ぶ
             </Button>
-            
+
+            {/* Back to Map Button - Updated to match image */}
             <Button
               fullWidth
               sx={{
-                bgcolor: "#666",
-                color: "white",
+                bgcolor: "white", // White background to match image
+                color: "black", // Black text to match image
                 borderRadius: "24px",
                 padding: "12px",
-                fontSize: "14px",
+                fontSize: "16px",
                 fontWeight: "normal",
                 textTransform: "none",
                 width: "90%",
-                "&:hover": { bgcolor: "#777" },
+                marginBottom: "60px",
+                "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
               }}
               onClick={onMap}
             >
@@ -239,6 +276,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           justifyContent: "center",
           alignItems: "center",
           padding: isMobile ? 2 : 0,
+          zIndex: 1500, // Highest z-index to be above everything
         }}
       >
         <Box
@@ -342,7 +380,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
         </Box>
       </MuiModal>
     </>
-  );
-};
+  )
+}
 
-export default Modal;
+export default Modal
+

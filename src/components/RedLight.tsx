@@ -303,10 +303,8 @@ const RedLight: React.FC = () => {
       />
 
       {/* Bottom Navigation */}
-      <Box sx={{ position: 'absolute', bottom: 0, width: '100%', zIndex: 10 }}>
         <BottomNav />
       </Box>
-    </Box>
   );
 };
 
