@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";

@@ -93,8 +93,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           justifyContent: "center",
           alignItems: "center",
           width: "100%",
-          height: "calc(100% - 120px)",
-          top: "60px",
+          height: "calc(100% - 60px)", // Only account for header height, touch the bottom nav
+          top: "60px", // Space for header
           position: "absolute",
           backgroundColor: "transparent",
           zIndex: 1, // Very low z-index to stay behind header/footer
@@ -104,7 +104,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             backgroundColor: "transparent",
             position: "absolute",
             top: "60px",
-            height: "calc(100% - 120px)",
+            height: "calc(100% - 60px)", // Match modal height
           }
         }}
         hideBackdrop={true} // Hide default backdrop
@@ -128,6 +128,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             backgroundSize: "cover",
             overflow: "auto",
             zIndex: 2, // Keep this still low
+            // Add padding at bottom to account for footer nav overlap
+            pb: "60px", 
           }}
         >
           <Box
@@ -153,7 +155,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 sx={{
                   color: "white",
                   fontSize: "16px",
-                  marginTop: "20px",
+                  marginTop: "40px",
                   marginBottom: "70px",
                   mb: 0.5,
                 }}

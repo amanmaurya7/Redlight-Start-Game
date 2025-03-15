@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from "react";
-import { Box, BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
+import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
 
 import HomeIcon from "../images/home-icon.svg";
 import CircuitIcon from "../images/circuit-icon.svg";
