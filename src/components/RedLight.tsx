@@ -5,7 +5,6 @@ import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
 import Svg7 from "../images/7.svg"; // Initial screen background image
-import HeaderSvg from "../images/header.svg"; // Header SVG
 
 import SecondVideo from '../assets/Movie2.mp4';
 
@@ -135,19 +134,67 @@ const RedLight: React.FC = () => {
         backgroundColor: '#242424', // Match the dark background from the design
       }}
     >
-      {/* Header - Using the provided HeaderSVG */}
-      <Box
-        component="img"
-        src={HeaderSvg}
-        alt="Header"
+      {/* Title banner replacing the SVG header */}
+      <Box 
         sx={{
-          width: "105%",
-          position: "absolute",
-          top: -7,
-          left: -11,
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          background: 'white',
+          padding: '10px 0',
+          borderRadius: '0 0 20px 20px',
+          textAlign: 'center',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
           zIndex: 100,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '70px',
+          '@media screen and (max-height: 500px)': {
+            height: '50px',
+            padding: '5px 0',
+          }
         }}
-      />
+      >
+        <Box 
+          component="h1"
+          sx={{
+            color: 'black',
+            fontSize: '18px',
+            margin: 0,
+            letterSpacing: '1px',
+            fontWeight: 'normal',
+            '@media screen and (max-height: 500px)': {
+              fontSize: '16px',
+            },
+            '& .highlight-red': {
+              color: 'red'
+            }
+          }}
+        >
+          <span className="highlight-red">R</span>EDLIGHT STA<span className="highlight-red">R</span>T
+        </Box>
+        <Box
+          component="h2"
+          sx={{
+            color: 'black',
+            fontSize: '14px',
+            margin: '5px 0 0',
+            fontWeight: 'normal',
+            '@media screen and (max-height: 500px)': {
+              fontSize: '12px',
+              marginTop: '2px',
+            },
+            '@media screen and (max-height: 400px)': {
+              display: 'none',
+            },
+          }}
+        >
+          レッドライトスタート
+        </Box>
+      </Box>
 
       {/* Game Content Container */}
       <Box
@@ -222,6 +269,7 @@ const RedLight: React.FC = () => {
                   color: "#2f3640",
                   border: "none",
                   fontSize: "16px",
+                
                   fontWeight: "bold",
                   cursor: "pointer",
                   boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",

@@ -98,6 +98,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           position: "absolute",
           backgroundColor: "transparent",
           zIndex: 1, // Very low z-index to stay behind header/footer
+          fontFamily: "'MyCustomFont', sans-serif", // Apply custom font to the modal
         }}
         BackdropProps={{
           style: { 
@@ -130,6 +131,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             zIndex: 2, // Keep this still low
             // Add padding at bottom to account for footer nav overlap
             pb: "60px", 
+            fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
           }}
         >
           <Box
@@ -147,9 +149,10 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               alignItems: "center",
               my: 2,
               zIndex: 3, // Higher than background
+              fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
             }}
           >
-            <Box ref={scoreRef} sx={{ width: "100%" }}>
+            <Box ref={scoreRef} sx={{ width: "100%", fontFamily: "'MyCustomFont', sans-serif" }}>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -158,9 +161,10 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   marginTop: "40px",
                   marginBottom: "70px",
                   mb: 0.5,
+                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
                 }}
               >
-                スタート アナリシス
+                ミッションクリア
               </Typography>
 
               <Typography
@@ -170,10 +174,11 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   letterSpacing: 1,
                   color: "white",
                   marginBottom: "60px",
-                  fontSize: "30px", // Larger font size to match image
+                  fontSize: "33px", // Larger font size to match image
+                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
                 }}
               >
-                START ANALYSIS
+                MISSION CLEAR
               </Typography>
 
               <Typography
@@ -183,9 +188,10 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   color: "#ff6699",
                   marginBottom: "50px",
                   mb: 0.5,
+                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
                 }}
               >
-                TIME
+                SCORE
               </Typography>
 
               <Typography
@@ -194,9 +200,11 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   color: "#ff6699",
                   marginTop: "25px",
                   marginBottom: "150px",
-                  textShadow: "0 0 20px #ff6699", // Enhanced glowing effect to match image
+                  textShadow: "0 0 5px #ff6699", // Reduced shadow intensity
                   mb: 3,
                   lineHeight: 1,
+                  fontFamily: "'MyCustomFont', sans-serif",
+                  animation: "subtleGlow 3s infinite", // Using a custom animation name
                 }}
               >
                 {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
@@ -219,6 +227,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 textTransform: "none",
                 width: "60%",
                 "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" }, // Hover effect
+                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
               }}
               onClick={handleShareClick}
             >
@@ -240,6 +249,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 textTransform: "none",
                 width: "60%",
                 "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
+                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
               }}
               onClick={onRetry}
             >
@@ -260,6 +270,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 width: "90%",
                 marginBottom: "60px",
                 "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
+                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
               }}
               onClick={onMap}
             >
@@ -279,6 +290,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           alignItems: "center",
           padding: isMobile ? 2 : 0,
           zIndex: 1500, // Highest z-index to be above everything
+          fontFamily: "'MyCustomFont', sans-serif", // Apply custom font to the share modal
         }}
       >
         <Box
@@ -291,6 +303,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             textAlign: "center",
             boxShadow: 24,
             position: "relative",
+            fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
           }}
         >
           <IconButton
@@ -305,7 +318,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h6" sx={{ mb: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2, fontFamily: "'MyCustomFont', sans-serif" }}>
             スコアをシェアする
           </Typography>
 
