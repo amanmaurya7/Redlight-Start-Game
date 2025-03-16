@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useState, useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
@@ -9,24 +9,66 @@ import Svg7 from "../images/7.svg"; // Initial screen background image
 import SecondVideo from '../assets/Movie2.mp4';
 
 const RedLight: React.FC = () => {
-  const [gameState, setGameState] = useState<'init' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
+  const [gameState, setGameState] = useState<'init' | 'loading' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
   const [reactionStartTime, setReactionStartTime] = useState<number | null>(null);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
+
+  // Preload video when component mounts
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (videoElement) {
+      videoElement.preload = "auto";
+      
+      const handleCanPlayThrough = () => {
+        console.log("Video can play through without buffering");
+        setVideoReady(true);
+      };
+      
+      const handleError = (e: Event) => {
+        console.error("Video error:", (e.target as HTMLVideoElement).error);
+        setVideoError("Failed to load video. Please try again.");
+      };
+      
+      videoElement.addEventListener('canplaythrough', handleCanPlayThrough);
+      videoElement.addEventListener('error', handleError);
+      
+      // Start loading the video
+      videoElement.load();
+      
+      return () => {
+        videoElement.removeEventListener('canplaythrough', handleCanPlayThrough);
+        videoElement.removeEventListener('error', handleError);
+      };
+    }
+  }, []);
 
   // Video playback and light detection
   useEffect(() => {
     if (gameState === 'playingVideo' && videoRef.current) {
       console.log("Starting to play video after transition");
+      
+      // Reset video to beginning if needed
+      videoRef.current.currentTime = 0;
+      
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => console.log("Video playing successfully"))
-          .catch(error => console.error("Error playing video:", error));
+          .catch(error => {
+            console.error("Error playing video:", error);
+            // Handle autoplay restrictions
+            if (error.name === "NotAllowedError") {
+              setVideoError("Video autoplay was blocked. Please try again.");
+              setGameState('init');
+            }
+          });
       }
 
       // Set up timeupdate event to detect when lights turn off
@@ -55,7 +97,12 @@ const RedLight: React.FC = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => console.log("Video continuing successfully"))
-          .catch(error => console.error("Error continuing video:", error));
+          .catch(error => {
+            console.error("Error continuing video:", error);
+            // Handle continuing playback error
+            setVideoError("Error resuming video. Please try again.");
+            setGameState('init');
+          });
       }
     }
 
@@ -68,8 +115,28 @@ const RedLight: React.FC = () => {
   }, [gameState]);
 
   const startGame = () => {
-    console.log("Starting game - transition sequence");
+    console.log("Starting game - checking video readiness");
     
+    if (!videoReady) {
+      console.log("Video not ready yet, entering loading state");
+      setGameState('loading');
+      
+      // Add a fallback timeout in case video never reaches ready state
+      const fallbackTimer = setTimeout(() => {
+        if (gameState === 'loading' && videoRef.current) {
+          console.log("Using fallback to start video");
+          proceedToStartGame();
+        }
+      }, 3000);
+      
+      return () => clearTimeout(fallbackTimer);
+    } else {
+      proceedToStartGame();
+    }
+  };
+  
+  const proceedToStartGame = () => {
+    console.log("Video ready, proceeding with game start");
     // First set state to starting to begin transition
     setGameState('starting');
     setButtonActive(false); // Make button inactive initially
@@ -86,6 +153,13 @@ const RedLight: React.FC = () => {
       setGameState('playingVideo');
     }, 1500); // Match this to the duration of the fade animation
   };
+
+  // Video loading ready handler
+  useEffect(() => {
+    if (videoReady && gameState === 'loading') {
+      proceedToStartGame();
+    }
+  }, [videoReady]);
 
   // Handle tap button click
   const handleTapClick = () => {
@@ -118,6 +192,7 @@ const RedLight: React.FC = () => {
     setReactionStartTime(null);
     setOpenModal(false);
     setButtonActive(false);
+    setVideoError(null);
   };
 
   return (
@@ -210,7 +285,7 @@ const RedLight: React.FC = () => {
         }}
       >
         {/* Initial screen - with fade-out animation when state changes */}
-        {(gameState === 'init' || gameState === 'starting') && (
+        {(gameState === 'init' || gameState === 'starting' || gameState === 'loading') && (
           <Box
             sx={{
               position: "absolute",
@@ -244,78 +319,100 @@ const RedLight: React.FC = () => {
               }}
             />
             
-            {/* Start Button */}
+            {/* Start Button or Loading Indicator */}
             <Box
               sx={{
                 position: "absolute",
                 bottom: "25%",
                 width: "100%",
                 display: "flex",
+                flexDirection: "column",
                 justifyContent: "center",
+                alignItems: "center",
                 zIndex: 4,
                 opacity: gameState === 'starting' ? 0 : 1,
                 transition: "opacity 0.5s ease-in-out",
               }}
             >
-              <Box
-                component="button"
-                onClick={gameState === 'init' ? startGame : undefined}
-                sx={{
-                  width: "80%",
-                  maxWidth: "280px",
-                  height: "48px",
-                  borderRadius: "24px",
-                  backgroundColor: "#f5f6fa",
-                  color: "#2f3640",
-                  border: "none",
-                  fontSize: "16px",
-                
-                  fontWeight: "bold",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                  transition: "all 0.3s ease",
-                  "&:hover": {
-                    backgroundColor: "#dcdde1",
-                    transform: "translateY(-2px)",
-                    boxShadow: "0 6px 8px rgba(0, 0, 0, 0.15)",
-                  },
-                  "&:active": {
-                    transform: "translateY(1px)",
-                    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                  },
-                }}
-              >
-                START
-              </Box>
+              {gameState === 'loading' ? (
+                <>
+                  <CircularProgress sx={{ color: 'white', mb: 1 }} />
+                  <Box sx={{ color: 'white', fontSize: '16px', mt: 1 }}>Loading...</Box>
+                </>
+              ) : (
+                <Box
+                  component="button"
+                  onClick={gameState === 'init' ? startGame : undefined}
+                  disabled={gameState !== 'init'}
+                  sx={{
+                    width: "80%",
+                    maxWidth: "280px",
+                    height: "48px",
+                    borderRadius: "24px",
+                    backgroundColor: "#f5f6fa",
+                    color: "#2f3640",
+                    border: "none",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    cursor: gameState === 'init' ? "pointer" : "default",
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      backgroundColor: gameState === 'init' ? "#dcdde1" : "#f5f6fa",
+                      transform: gameState === 'init' ? "translateY(-2px)" : "none",
+                      boxShadow: gameState === 'init' ? "0 6px 8px rgba(0, 0, 0, 0.15)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    },
+                    "&:active": {
+                      transform: gameState === 'init' ? "translateY(1px)" : "none",
+                      boxShadow: gameState === 'init' ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                    },
+                  }}
+                >
+                  START
+                </Box>
+              )}
+              
+              {/* Error message if video failed to load */}
+              {videoError && (
+                <Box sx={{ 
+                  color: 'white', 
+                  backgroundColor: 'rgba(255, 0, 0, 0.7)',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  marginTop: '10px',
+                  fontSize: '14px'
+                }}>
+                  {videoError}
+                </Box>
+              )}
             </Box>
-           
           </Box>
         )}
 
         {/* Video Element */}
-        {(gameState !== 'init') && (
-          <video 
-            ref={videoRef}
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              zIndex: 1,
-              opacity: gameState === 'starting' ? 0 : 1,
-              transition: "opacity 0.5s ease-in-out",
-            }}
-            onEnded={handleVideoEnd}
-            muted
-            playsInline
-            preload="auto"
-          >
-            <source src={SecondVideo} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        )}
+        <video 
+          ref={videoRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 1,
+            opacity: gameState === 'starting' ? 0 : 1,
+            transition: "opacity 0.5s ease-in-out",
+            display: gameState === 'init' ? "none" : "block", // Only create the video element when needed
+          }}
+          onEnded={handleVideoEnd}
+          muted
+          playsInline
+          preload="auto"
+          onCanPlayThrough={() => setVideoReady(true)}
+        >
+          <source src={SecondVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
         
         {/* Tap button shown during video playback */}
         {(gameState === 'playingVideo' || gameState === 'waitingForTap' || gameState === 'continuingVideo') && (
@@ -351,8 +448,8 @@ const RedLight: React.FC = () => {
       />
 
       {/* Bottom Navigation */}
-        <BottomNav />
-      </Box>
+      <BottomNav />
+    </Box>
   );
 };
 
