@@ -29,61 +29,66 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
+  // Add a state to control when to render the SNS background element
+  const [shouldRenderScoreElement, setShouldRenderScoreElement] = useState(false)
   const scoreRef = useRef<HTMLDivElement>(null)
 
-  // Generate score card when the modal opens or reaction time changes
+  // Don't automatically generate score card when modal opens
+  // Only prepare it when user is about to share
   useEffect(() => {
-    if (open && reactionTime !== null) {
-      // Use a small timeout to let the component render fully first
-      const timer = setTimeout(() => {
-        generateScoreCard();
-      }, 300);
-      
-      return () => clearTimeout(timer);
+    // Clear the image URL when modal closes to prevent stale images
+    if (!open) {
+      setScoreImageUrl(null);
+      setShouldRenderScoreElement(false);
     }
-  }, [open, reactionTime]);
+  }, [open]);
+
+  const prepareShareImage = useCallback(() => {
+    // Only render the score element when needed
+    setShouldRenderScoreElement(true);
+    
+    // Use a small timeout to let the component render first
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        resolve();
+      }, 100);
+    });
+  }, []);
 
   const generateScoreCard = useCallback(async () => {
     try {
-      if (scoreRef.current) {
-        setIsGeneratingImage(true);
-        
-        // Make the score card element visible before capturing
-        const scoreElement = scoreRef.current;
-        const originalVisibility = scoreElement.style.visibility;
-        const originalPosition = scoreElement.style.position;
-        const originalZIndex = scoreElement.style.zIndex;
-        
-        // Show the element while capturing
-        scoreElement.style.visibility = 'visible';
-        scoreElement.style.position = 'static';
-        scoreElement.style.zIndex = '100';
-        
-        // Optimized html2canvas options
-        const options = {
-          scale: window.devicePixelRatio * 1.5, // Better handling of device pixel ratio
-          backgroundColor: null,
-          logging: false, // Disable logging for performance
-          useCORS: true,
-          allowTaint: true,
-          imageTimeout: 0, // No timeout
-          removeContainer: true, // Cleanup after rendering
-        };
-        
-        const canvas = await html2canvas(scoreElement, options);
-        const imageUrl = canvas.toDataURL("image/png", 0.9); // Slightly compressed for better performance
-        setScoreImageUrl(imageUrl);
-        
-        // Reset element properties
-        scoreElement.style.visibility = originalVisibility;
-        scoreElement.style.position = originalPosition;
-        scoreElement.style.zIndex = originalZIndex;
-        
-        setIsGeneratingImage(false);
-        return imageUrl;
-      }
+      if (!scoreRef.current) return null;
+      
+      setIsGeneratingImage(true);
+      
+      // Make the score card element visible before capturing
+      const scoreElement = scoreRef.current;
+      scoreElement.style.visibility = 'visible';
+      scoreElement.style.position = 'static';
+      scoreElement.style.zIndex = '100';
+      
+      // Optimized html2canvas options
+      const options = {
+        scale: window.devicePixelRatio * 1.5,
+        backgroundColor: null,
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        imageTimeout: 0,
+        removeContainer: true,
+      };
+      
+      const canvas = await html2canvas(scoreElement, options);
+      const imageUrl = canvas.toDataURL("image/png", 0.9);
+      setScoreImageUrl(imageUrl);
+      
+      // Hide the element again
+      scoreElement.style.visibility = 'hidden';
+      scoreElement.style.position = 'fixed';
+      scoreElement.style.zIndex = '-1';
+      
       setIsGeneratingImage(false);
-      return null;
+      return imageUrl;
     } catch (error) {
       console.error("Failed to generate score card:", error);
       setIsGeneratingImage(false);
@@ -91,19 +96,27 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
     }
   }, []);
 
-  const handleShareClick = () => {
+  const handleShareClick = async () => {
+    setIsGeneratingImage(true);
+    
     // If image is already generated, open modal right away
     if (scoreImageUrl) {
       setShareModalOpen(true);
-    } else {
-      // Otherwise generate the image first
-      setIsGeneratingImage(true);
-      generateScoreCard().then((imageUrl) => {
-        if (imageUrl) {
-          setShareModalOpen(true);
-        }
-        setIsGeneratingImage(false);
-      });
+      setIsGeneratingImage(false);
+      return;
+    }
+    
+    try {
+      // First prepare the share element
+      await prepareShareImage();
+      
+      // Then generate the image
+      const imageUrl = await generateScoreCard();
+      if (imageUrl) {
+        setShareModalOpen(true);
+      }
+    } finally {
+      setIsGeneratingImage(false);
     }
   }
 
@@ -213,80 +226,82 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               ...fontStyle,
             }}
           >
-            {/* Score card with SNS background - Updated with full width/height and styling */}
-            <Box 
-              ref={scoreRef} 
-              sx={{ 
-                width: "100%",
-                height: "100%",
-                backgroundImage: `url(${snsBgImage})`,
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                backgroundSize: "cover",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 4,
-                // Hide this element but keep it in DOM for html2canvas
-                position: "fixed",
-                left: "-9999px",
-                top: 0,
-                visibility: "hidden",
-                zIndex: -1,
-                aspectRatio: "1/1", // Keep square aspect ratio
-                ...fontStyle,
-              }}
-            >
-              {/* REDLIGHT Game text - Updated with pink color */}
-              <Typography
-                variant="h4"
-                sx={{
-                  color: "black", // Changed to match score color
-                  marginTop:20,
-                  textShadow: "0 0 10pxrgb(0, 0, 0)", // Added glow like score
-                  marginBottom: 2,
-                  textAlign: "center",
-                  fontWeight: "bold",
-                  fontSize: {xs: 34, sm: 32, md: 36}, // Responsive size
-                  letterSpacing: 1,
+            {/* Only render the score card when needed */}
+            {shouldRenderScoreElement && (
+              <Box 
+                ref={scoreRef} 
+                sx={{ 
+                  width: "100%",
+                  height: "100%",
+                  backgroundImage: `url(${snsBgImage})`,
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  backgroundSize: "cover",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 4,
+                  // Completely hide this element until needed
+                  position: "fixed",
+                  left: "-9999px",
+                  top: 0,
+                  visibility: "hidden",
+                  zIndex: -10,
+                  aspectRatio: "1/1",
                   ...fontStyle,
                 }}
               >
-                REDLIGHT GAME
-              </Typography>
-              
-              {/* TIME text - Updated with pink color */}
-              <Typography
-                variant="h6"
-                sx={{
-                  color: "#ff6699", // Changed to match score color
-                  marginBottom: 2,
-                  textAlign: "center",
-                  fontWeight: "500",
-                  fontSize: {xs: 25, sm: 25, md: 28}, // Responsive size
-                  ...fontStyle,
-                }}
-              >
-                TIME
-              </Typography>
-              
-              {/* Score display - Kept the same pink color, enhanced styling */}
-              <Typography
-                sx={{
-                  fontSize: {xs: 84, sm: 90, md: 100}, // Larger responsive size
-                  color: "#ff6699",
-                  textShadow: "0 0 10px #ff6699",
-                  textAlign: "center",
-                  lineHeight: 1,
-                  ...fontStyle,
-                }}
-              >
-                {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
-              </Typography>
-            </Box>
+                {/* REDLIGHT Game text */}
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: "black",
+                    marginTop:20,
+                    textShadow: "0 0 10pxrgb(0, 0, 0)",
+                    marginBottom: 2,
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: {xs: 34, sm: 32, md: 36},
+                    letterSpacing: 1,
+                    ...fontStyle,
+                  }}
+                >
+                  REDLIGHT GAME
+                </Typography>
+                
+                {/* TIME text */}
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "#ff6699",
+                    marginBottom: 2,
+                    textAlign: "center",
+                    fontWeight: "500",
+                    fontSize: {xs: 25, sm: 25, md: 28},
+                    ...fontStyle,
+                  }}
+                >
+                  TIME
+                </Typography>
+                
+                {/* Score display */}
+                <Typography
+                  sx={{
+                    fontSize: {xs: 84, sm: 90, md: 100},
+                    color: "#ff6699",
+                    textShadow: "0 0 10px #ff6699",
+                    textAlign: "center",
+                    lineHeight: 1,
+                    ...fontStyle,
+                  }}
+                >
+                  {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+                </Typography>
+              </Box>
+            )}
             
-            {/* Regular visible score display in the modal (not for sharing) */}
+            {/* Regular visible score display in the modal */}
             <Box sx={{ width: "100%", ...fontStyle }}>
               <Typography
                 variant="subtitle1"
@@ -364,6 +379,10 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
                 ...fontStyle,
                 position: "relative", // For positioning the loading spinner
+                // Add a smooth transition for button content
+                "& > *": {
+                  transition: "opacity 0.2s ease-in-out"
+                }
               }}
               onClick={handleShareClick}
               disabled={isGeneratingImage}
