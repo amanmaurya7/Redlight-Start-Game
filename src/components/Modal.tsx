@@ -61,11 +61,14 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
       
       setIsGeneratingImage(true);
       
-      // Make the score card element visible before capturing
+      // Get a reference to the score element
       const scoreElement = scoreRef.current;
-      scoreElement.style.visibility = 'visible';
-      scoreElement.style.position = 'static';
-      scoreElement.style.zIndex = '100';
+      
+      // Before capturing, make sure it's properly visible to html2canvas
+      // but still invisible to user (off-screen)
+      const originalTransform = scoreElement.style.transform;
+      scoreElement.style.opacity = '1'; // Make it fully opaque for capture
+      scoreElement.style.transform = 'none'; // Remove any transforms that might affect capture
       
       // Optimized html2canvas options
       const options = {
@@ -76,16 +79,18 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
         allowTaint: true,
         imageTimeout: 0,
         removeContainer: true,
+        // Add this to prevent scrolling issues
+        windowWidth: scoreElement.offsetWidth,
+        windowHeight: scoreElement.offsetHeight,
       };
       
       const canvas = await html2canvas(scoreElement, options);
       const imageUrl = canvas.toDataURL("image/png", 0.9);
       setScoreImageUrl(imageUrl);
       
-      // Hide the element again
-      scoreElement.style.visibility = 'hidden';
-      scoreElement.style.position = 'fixed';
-      scoreElement.style.zIndex = '-1';
+      // Restore the original state
+      scoreElement.style.opacity = '0';
+      scoreElement.style.transform = originalTransform;
       
       setIsGeneratingImage(false);
       return imageUrl;
@@ -231,8 +236,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               <Box 
                 ref={scoreRef} 
                 sx={{ 
-                  width: "100%",
-                  height: "100%",
+                  width: 320, // Set fixed width for better capture
+                  height: 320, // Set fixed height for better capture
                   backgroundImage: `url(${snsBgImage})`,
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -242,13 +247,13 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   alignItems: "center",
                   justifyContent: "center",
                   padding: 4,
-                  // Completely hide this element until needed
+                  // Keep this element completely offscreen and hidden from user view
                   position: "fixed",
                   left: "-9999px",
-                  top: 0,
-                  visibility: "hidden",
-                  zIndex: -10,
-                  aspectRatio: "1/1",
+                  top: "-9999px",
+                  pointerEvents: "none", // Prevent any interactions
+                  opacity: 0, // Hidden initially but will be set to 1 during capture
+                  zIndex: -999, // Ensure it's behind everything
                   ...fontStyle,
                 }}
               >
@@ -256,18 +261,17 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 <Typography
                   variant="h4"
                   sx={{
-                    color: "black",
-                    marginTop:20,
-                    textShadow: "0 0 10pxrgb(0, 0, 0)",
-                    marginBottom: 2,
+                    color: "black", // Ensure text is visible against background
+                    marginTop: 20, // Significantly increased from 5 to 10 for much more space at the top
+                    textShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                     textAlign: "center",
                     fontWeight: "bold",
-                    fontSize: {xs: 34, sm: 32, md: 36},
+                    fontSize: {xs: 28, sm: 28, md: 30},
                     letterSpacing: 1,
                     ...fontStyle,
                   }}
                 >
-                  REDLIGHT GAME
+                  REDLIGHT START
                 </Typography>
                 
                 {/* TIME text */}
@@ -275,7 +279,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   variant="h6"
                   sx={{
                     color: "#ff6699",
-                    marginBottom: 2,
+                    marginTop: 3, // Increased from 2 to 5 for more space
+                    marginBottom: 1,
                     textAlign: "center",
                     fontWeight: "500",
                     fontSize: {xs: 25, sm: 25, md: 28},
@@ -296,7 +301,18 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                     ...fontStyle,
                   }}
                 >
-                  {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+                    {reactionTime !== null ? (
+                    <>
+                      {(reactionTime / 1000).toFixed(3)}
+                      <Typography component="span" sx={{ 
+                      fontSize: '60%', 
+                      verticalAlign: 'baseline',
+                      fontFamily: "'MyCustomFont', sans-serif" 
+                      }}>
+                      s
+                      </Typography>
+                    </>
+                    ) : "--"}
                 </Typography>
               </Box>
             )}
@@ -357,7 +373,20 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   ...fontStyle,
                 }}
               >
-                {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+                {reactionTime !== null ? (
+                  <>
+                  {(reactionTime / 1000).toFixed(3)}
+                    <Typography component="span" sx={{ 
+                    fontSize: '50%', 
+                    verticalAlign: 'super',
+                    fontFamily: "'MyCustomFont', sans-serif",
+                    position: 'relative',
+                    bottom: '-0.6em'
+                    }}>
+                    s
+                    </Typography>
+                  </>
+                ) : "--"}
               </Typography>
             </Box>
 
@@ -397,7 +426,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                       left: "20%",
                     }} 
                   />
-                  生成中... {/* "Generating..." in Japanese */}
+                  生成中... {/* "Generating..." in Japanese */} 
                 </>
               ) : (
                 "SNSでシェアする"

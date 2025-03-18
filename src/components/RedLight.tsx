@@ -30,7 +30,7 @@ const RedLight: React.FC = () => {
         setVideoReady(true);
       };
       
-      const handleError = (e: Event) => {
+      const handleError = (_e: Event) => {
         setVideoError("Failed to load video. Please try again.");
       };
       
@@ -91,7 +91,7 @@ const RedLight: React.FC = () => {
       if (playPromise !== undefined) {
         playPromise
           .then(() => console.log("Video continuing successfully"))
-          .catch(error => {
+          .catch(_error => {
             // Handle continuing playback error
             setVideoError("Error resuming video. Please try again.");
             setGameState('init');
@@ -160,7 +160,7 @@ const RedLight: React.FC = () => {
         // Continue from the current position
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
-          playPromise.catch(error => {
+          playPromise.catch(_error => {
           });
         }
       }
