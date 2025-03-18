@@ -2,12 +2,18 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type React from "react"
-import { useState, useRef, useCallback } from "react"
-import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton } from "@mui/material"
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Box, Button, Typography, Modal as MuiModal, useMediaQuery, useTheme, IconButton, CircularProgress } from "@mui/material"
 import { Share2, Download } from "lucide-react"
 import CloseIcon from "@mui/icons-material/Close"
 import html2canvas from "html2canvas"
 import backgroundImage from "../images/7.svg" // Import SVG directly
+import snsBgImage from "../images/SNS-bg.png" // Replace with actual path to your SNS-bg image
+
+// Define a consistent font styling to apply throughout the component
+const fontStyle = {
+  fontFamily: "'MyCustomFont', sans-serif"
+};
 
 interface ModalProps {
   open: boolean
@@ -22,27 +28,82 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const scoreRef = useRef<HTMLDivElement>(null)
+
+  // Generate score card when the modal opens or reaction time changes
+  useEffect(() => {
+    if (open && reactionTime !== null) {
+      // Use a small timeout to let the component render fully first
+      const timer = setTimeout(() => {
+        generateScoreCard();
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [open, reactionTime]);
 
   const generateScoreCard = useCallback(async () => {
     try {
       if (scoreRef.current) {
-        const canvas = await html2canvas(scoreRef.current)
-        const imageUrl = canvas.toDataURL("image/png")
-        setScoreImageUrl(imageUrl)
-        return imageUrl
+        setIsGeneratingImage(true);
+        
+        // Make the score card element visible before capturing
+        const scoreElement = scoreRef.current;
+        const originalVisibility = scoreElement.style.visibility;
+        const originalPosition = scoreElement.style.position;
+        const originalZIndex = scoreElement.style.zIndex;
+        
+        // Show the element while capturing
+        scoreElement.style.visibility = 'visible';
+        scoreElement.style.position = 'static';
+        scoreElement.style.zIndex = '100';
+        
+        // Optimized html2canvas options
+        const options = {
+          scale: window.devicePixelRatio * 1.5, // Better handling of device pixel ratio
+          backgroundColor: null,
+          logging: false, // Disable logging for performance
+          useCORS: true,
+          allowTaint: true,
+          imageTimeout: 0, // No timeout
+          removeContainer: true, // Cleanup after rendering
+        };
+        
+        const canvas = await html2canvas(scoreElement, options);
+        const imageUrl = canvas.toDataURL("image/png", 0.9); // Slightly compressed for better performance
+        setScoreImageUrl(imageUrl);
+        
+        // Reset element properties
+        scoreElement.style.visibility = originalVisibility;
+        scoreElement.style.position = originalPosition;
+        scoreElement.style.zIndex = originalZIndex;
+        
+        setIsGeneratingImage(false);
+        return imageUrl;
       }
-      return null
+      setIsGeneratingImage(false);
+      return null;
     } catch (error) {
-      console.error("Failed to generate score card:", error)
-      return null
+      console.error("Failed to generate score card:", error);
+      setIsGeneratingImage(false);
+      return null;
     }
-  }, [])
+  }, []);
 
-  const handleShareClick = async () => {
-    const imageUrl = await generateScoreCard()
-    if (imageUrl) {
-      setShareModalOpen(true)
+  const handleShareClick = () => {
+    // If image is already generated, open modal right away
+    if (scoreImageUrl) {
+      setShareModalOpen(true);
+    } else {
+      // Otherwise generate the image first
+      setIsGeneratingImage(true);
+      generateScoreCard().then((imageUrl) => {
+        if (imageUrl) {
+          setShareModalOpen(true);
+        }
+        setIsGeneratingImage(false);
+      });
     }
   }
 
@@ -98,7 +159,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           position: "absolute",
           backgroundColor: "transparent",
           zIndex: 1, // Very low z-index to stay behind header/footer
-          fontFamily: "'MyCustomFont', sans-serif", // Apply custom font to the modal
+          ...fontStyle,
         }}
         BackdropProps={{
           style: { 
@@ -131,7 +192,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             zIndex: 2, // Keep this still low
             // Add padding at bottom to account for footer nav overlap
             pb: "60px", 
-            fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+            ...fontStyle,
           }}
         >
           <Box
@@ -149,10 +210,84 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               alignItems: "center",
               my: 2,
               zIndex: 3, // Higher than background
-              fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+              ...fontStyle,
             }}
           >
-            <Box ref={scoreRef} sx={{ width: "100%", fontFamily: "'MyCustomFont', sans-serif" }}>
+            {/* Score card with SNS background - Updated with full width/height and styling */}
+            <Box 
+              ref={scoreRef} 
+              sx={{ 
+                width: "100%",
+                height: "100%",
+                backgroundImage: `url(${snsBgImage})`,
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 4,
+                // Hide this element but keep it in DOM for html2canvas
+                position: "fixed",
+                left: "-9999px",
+                top: 0,
+                visibility: "hidden",
+                zIndex: -1,
+                aspectRatio: "1/1", // Keep square aspect ratio
+                ...fontStyle,
+              }}
+            >
+              {/* REDLIGHT Game text - Updated with pink color */}
+              <Typography
+                variant="h4"
+                sx={{
+                  color: "black", // Changed to match score color
+                  marginTop:20,
+                  textShadow: "0 0 10pxrgb(0, 0, 0)", // Added glow like score
+                  marginBottom: 2,
+                  textAlign: "center",
+                  fontWeight: "bold",
+                  fontSize: {xs: 34, sm: 32, md: 36}, // Responsive size
+                  letterSpacing: 1,
+                  ...fontStyle,
+                }}
+              >
+                REDLIGHT GAME
+              </Typography>
+              
+              {/* TIME text - Updated with pink color */}
+              <Typography
+                variant="h6"
+                sx={{
+                  color: "#ff6699", // Changed to match score color
+                  marginBottom: 2,
+                  textAlign: "center",
+                  fontWeight: "500",
+                  fontSize: {xs: 25, sm: 25, md: 28}, // Responsive size
+                  ...fontStyle,
+                }}
+              >
+                TIME
+              </Typography>
+              
+              {/* Score display - Kept the same pink color, enhanced styling */}
+              <Typography
+                sx={{
+                  fontSize: {xs: 84, sm: 90, md: 100}, // Larger responsive size
+                  color: "#ff6699",
+                  textShadow: "0 0 10px #ff6699",
+                  textAlign: "center",
+                  lineHeight: 1,
+                  ...fontStyle,
+                }}
+              >
+                {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+              </Typography>
+            </Box>
+            
+            {/* Regular visible score display in the modal (not for sharing) */}
+            <Box sx={{ width: "100%", ...fontStyle }}>
               <Typography
                 variant="subtitle1"
                 sx={{
@@ -161,7 +296,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   marginTop: "40px",
                   marginBottom: "70px",
                   mb: 0.5,
-                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                  ...fontStyle,
                 }}
               >
                 ミッションクリア
@@ -175,7 +310,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   color: "white",
                   marginBottom: "60px",
                   fontSize: "33px", // Larger font size to match image
-                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                  ...fontStyle,
                 }}
               >
                 MISSION CLEAR
@@ -188,7 +323,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   color: "#ff6699",
                   marginBottom: "50px",
                   mb: 0.5,
-                  fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                  ...fontStyle,
                 }}
               >
                 SCORE
@@ -203,22 +338,22 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                   textShadow: "0 0 5px #ff6699", // Reduced shadow intensity
                   mb: 3,
                   lineHeight: 1,
-                  fontFamily: "'MyCustomFont', sans-serif",
                   animation: "subtleGlow 3s infinite", // Using a custom animation name
+                  ...fontStyle,
                 }}
               >
                 {reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
               </Typography>
             </Box>
 
-            {/* Share on SNS Button - Updated to match image */}
+            {/* Share on SNS Button - Updated to match image and show loading indicator */}
             <Button
               fullWidth
               sx={{
                 mb: 1.5,
-                bgcolor: "#3D4658", // Semi-transparent gray to match image
+                bgcolor: "#3D4658",
                 color: "white",
-                borderRadius: "24px", // Rounded corners
+                borderRadius: "24px",
                 padding: "12px",
                 marginTop: "50px",
                 marginBottom: "30px",
@@ -226,12 +361,28 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 fontWeight: "normal",
                 textTransform: "none",
                 width: "60%",
-                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" }, // Hover effect
-                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
+                ...fontStyle,
+                position: "relative", // For positioning the loading spinner
               }}
               onClick={handleShareClick}
+              disabled={isGeneratingImage}
             >
-              SNSでシェアする
+              {isGeneratingImage ? (
+                <>
+                  <CircularProgress 
+                    size={16} 
+                    sx={{ 
+                      color: "white", 
+                      position: "absolute",
+                      left: "20%",
+                    }} 
+                  />
+                  生成中... {/* "Generating..." in Japanese */}
+                </>
+              ) : (
+                "SNSでシェアする"
+              )}
             </Button>
 
             {/* Play Again Button - Updated to match image */}
@@ -249,7 +400,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 textTransform: "none",
                 width: "60%",
                 "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
-                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                ...fontStyle,
               }}
               onClick={onRetry}
             >
@@ -270,7 +421,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
                 width: "90%",
                 marginBottom: "60px",
                 "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
-                fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+                ...fontStyle,
               }}
               onClick={onMap}
             >
@@ -280,7 +431,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
         </Box>
       </MuiModal>
 
-      {/* Share Modal */}
+      {/* Share Modal - with loading state */}
       <MuiModal
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
@@ -290,7 +441,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
           alignItems: "center",
           padding: isMobile ? 2 : 0,
           zIndex: 1500, // Highest z-index to be above everything
-          fontFamily: "'MyCustomFont', sans-serif", // Apply custom font to the share modal
+          ...fontStyle,
         }}
       >
         <Box
@@ -303,7 +454,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             textAlign: "center",
             boxShadow: 24,
             position: "relative",
-            fontFamily: "'MyCustomFont', sans-serif", // Apply custom font
+            ...fontStyle,
           }}
         >
           <IconButton
@@ -318,11 +469,24 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h6" sx={{ mb: 2, fontFamily: "'MyCustomFont', sans-serif" }}>
+          <Typography variant="h6" sx={{ mb: 2, ...fontStyle }}>
             スコアをシェアする
           </Typography>
 
-          {scoreImageUrl && (
+          {!scoreImageUrl && isGeneratingImage ? (
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              py: 4 
+            }}>
+              <CircularProgress size={40} sx={{ mb: 2 }} />
+              <Typography variant="body2" sx={{...fontStyle}}>
+                画像を生成中... {/* "Generating image..." in Japanese */}
+              </Typography>
+            </Box>
+          ) : scoreImageUrl && (
             <Box
               component="img"
               src={scoreImageUrl}
@@ -362,7 +526,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               >
                 <Share2 size={24} color="white" />
               </Box>
-              <Typography variant="caption">Share</Typography>
+              <Typography variant="caption" sx={{...fontStyle}}>Share</Typography>
             </Box>
 
             <Box
@@ -389,7 +553,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
               >
                 <Download size={24} color="white" />
               </Box>
-              <Typography variant="caption">Save</Typography>
+              <Typography variant="caption" sx={{...fontStyle}}>Save</Typography>
             </Box>
           </Box>
         </Box>

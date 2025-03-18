@@ -27,12 +27,10 @@ const RedLight: React.FC = () => {
       videoElement.preload = "auto";
       
       const handleCanPlayThrough = () => {
-        console.log("Video can play through without buffering");
         setVideoReady(true);
       };
       
       const handleError = (e: Event) => {
-        console.error("Video error:", (e.target as HTMLVideoElement).error);
         setVideoError("Failed to load video. Please try again.");
       };
       
@@ -52,7 +50,6 @@ const RedLight: React.FC = () => {
   // Video playback and light detection
   useEffect(() => {
     if (gameState === 'playingVideo' && videoRef.current) {
-      console.log("Starting to play video after transition");
       
       // Reset video to beginning if needed
       videoRef.current.currentTime = 0;
@@ -62,7 +59,6 @@ const RedLight: React.FC = () => {
         playPromise
           .then(() => console.log("Video playing successfully"))
           .catch(error => {
-            console.error("Error playing video:", error);
             // Handle autoplay restrictions
             if (error.name === "NotAllowedError") {
               setVideoError("Video autoplay was blocked. Please try again.");
@@ -76,7 +72,6 @@ const RedLight: React.FC = () => {
         const video = e.target as HTMLVideoElement;
         // Pause at the specified time when lights turn off
         if (video.currentTime >= 5.13) {
-          console.log("Lights off detected, pausing video and activating tap button");
           video.pause();
           setGameState('waitingForTap');
           setButtonActive(true);
@@ -92,13 +87,11 @@ const RedLight: React.FC = () => {
       timeUpdateHandlerRef.current = timeUpdateHandler;
       videoRef.current.addEventListener('timeupdate', timeUpdateHandler);
     } else if (gameState === 'continuingVideo' && videoRef.current) {
-      console.log("Continuing video playback");
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => console.log("Video continuing successfully"))
           .catch(error => {
-            console.error("Error continuing video:", error);
             // Handle continuing playback error
             setVideoError("Error resuming video. Please try again.");
             setGameState('init');
@@ -115,16 +108,13 @@ const RedLight: React.FC = () => {
   }, [gameState]);
 
   const startGame = () => {
-    console.log("Starting game - checking video readiness");
     
     if (!videoReady) {
-      console.log("Video not ready yet, entering loading state");
       setGameState('loading');
       
       // Add a fallback timeout in case video never reaches ready state
       const fallbackTimer = setTimeout(() => {
         if (gameState === 'loading' && videoRef.current) {
-          console.log("Using fallback to start video");
           proceedToStartGame();
         }
       }, 3000);
@@ -136,7 +126,6 @@ const RedLight: React.FC = () => {
   };
   
   const proceedToStartGame = () => {
-    console.log("Video ready, proceeding with game start");
     // First set state to starting to begin transition
     setGameState('starting');
     setButtonActive(false); // Make button inactive initially
@@ -149,7 +138,6 @@ const RedLight: React.FC = () => {
     
     // After the fade effect completes, set to playing video state
     setTimeout(() => {
-      console.log("Transition complete, starting video");
       setGameState('playingVideo');
     }, 1500); // Match this to the duration of the fade animation
   };
@@ -173,7 +161,6 @@ const RedLight: React.FC = () => {
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
           playPromise.catch(error => {
-            console.error("Video continuation failed:", error);
           });
         }
       }
