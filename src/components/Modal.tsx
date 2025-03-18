@@ -143,11 +143,27 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
         })
         setShareModalOpen(false)
       } else {
+        // If Web Share API isn't available or fails, fall back to download
         downloadImage()
+        // Also show the text that would have been shared
+        console.log("Share text (copied to clipboard):", shareText)
+        try {
+          await navigator.clipboard.writeText(shareText)
+        } catch (error) {
+          console.error("Failed to copy share text to clipboard:", error)
+        }
       }
     } catch (error) {
       console.error("Error sharing:", error)
       downloadImage()
+      // Try to copy the text to clipboard as a fallback
+      try {
+        await navigator.clipboard.writeText(shareText)
+        alert("Image downloaded. Share text copied to clipboard!")
+      } catch (clipboardError) {
+        console.error("Failed to copy share text to clipboard:", clipboardError)
+        alert("Image downloaded. Please copy your score manually.")
+      }
     }
   }
 
