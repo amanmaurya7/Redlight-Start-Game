@@ -8,14 +8,128 @@ import Svg7 from "../images/7.svg"; // Initial screen background image
 
 import SecondVideo from '../assets/Movie2.mp4';
 
+// Add MissionBanner and WhiteBelt components
+const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onAnimationComplete: () => void }) => {
+  const [opacity, setOpacity] = useState(0); // Start with opacity 0
+
+  useEffect(() => {
+    if (visible) {
+      setOpacity(1);
+      
+      // Animation timing to match original implementation
+      const timeoutId = setTimeout(() => {
+        setOpacity(0);
+        
+        // Wait for fade out animation to complete before calling the callback
+        setTimeout(() => {
+          if (onAnimationComplete) {
+            onAnimationComplete();
+          }
+        }, 500);
+      }, 2000);
+      
+      return () => clearTimeout(timeoutId);
+    } else {
+      // Ensure opacity is 0 when not visible
+      setOpacity(0);
+    }
+  }, [visible, onAnimationComplete]);
+
+  // Return null instead of a component if not visible
+  if (!visible) return null;
+
+  return (
+    <Box 
+      sx={{
+        position: "absolute",
+        left: "50%",
+        top: "50%",
+        transform: "translate(-50%, -50%)",
+        marginTop: "50px",
+        width: "80%",
+        maxWidth: "400px",
+        background: "rgba(255, 255, 255, 0.95)",
+        padding: "15px 20px",
+        textAlign: "center",
+        zIndex: 10,
+        opacity: opacity,
+        transition: "opacity 0.5s ease",
+        borderRadius: "10px",
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+        display: opacity === 0 ? 'none' : 'block',
+        '@media screen and (max-height: 500px)': {
+          padding: '12px 18px',
+        }
+      }}
+    >
+      <Box 
+        component="h2" 
+        sx={{
+          color: "black",
+          fontSize: "18px",
+          margin: 0,
+          fontWeight: "bold",
+          '@media screen and (max-height: 500px)': {
+            fontSize: '16px',
+          }
+        }}
+      >
+        MISSION
+      </Box>
+      <Box 
+        component="p"
+        sx={{
+          color: "black",
+          fontSize: "14px",
+          margin: "8px 0 0",
+          '@media screen and (max-height: 500px)': {
+            fontSize: '13px',
+            marginTop: '6px',
+          }
+        }}
+      >
+        赤信号が消えたらすぐにタップしよう！
+      </Box>
+    </Box>
+  );
+};
+
+const WhiteBelt = ({ visible }: { visible: boolean }) => {
+  // Return null if not visible instead of relying only on CSS
+  if (!visible) return null;
+  
+  return (
+    <Box 
+      sx={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100%",
+        height: "100%",
+        zIndex: 9,
+        display: visible ? "flex" : "none",
+        justifyContent: "center",
+        alignItems: "center",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.5s ease",
+        backgroundColor: "#ffffff"
+      }}
+    />
+  );
+};
+
 const RedLight: React.FC = () => {
-  const [gameState, setGameState] = useState<'init' | 'loading' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
+  const [gameState, setGameState] = useState<'init' | 'loading' | 'missionIntro' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
   const [reactionStartTime, setReactionStartTime] = useState<number | null>(null);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
+  
+  // Explicitly initialize these to false
+  const [showMissionBanner, setShowMissionBanner] = useState(false);
+  const [showWhiteBelt, setShowWhiteBelt] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
@@ -108,21 +222,44 @@ const RedLight: React.FC = () => {
   }, [gameState]);
 
   const startGame = () => {
+    console.log("Start button clicked");
+    // Only show mission banner when the start button is clicked
+    setGameState('missionIntro');
+    setShowWhiteBelt(true);
+    setShowMissionBanner(true);
     
+    // Prepare video but don't play it yet
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.pause();
+    }
+    
+    // We'll still load the video in the background if not ready
     if (!videoReady) {
-      setGameState('loading');
-      
       // Add a fallback timeout in case video never reaches ready state
       const fallbackTimer = setTimeout(() => {
-        if (gameState === 'loading' && videoRef.current) {
-          proceedToStartGame();
+        if (!videoReady && videoRef.current) {
+          setVideoReady(true); // Force video ready state after timeout
         }
       }, 3000);
       
       return () => clearTimeout(fallbackTimer);
-    } else {
-      proceedToStartGame();
     }
+  };
+  
+  // Handle mission banner animation completion
+  const handleMissionBannerComplete = () => {
+    setShowMissionBanner(false);
+    
+    // Fade out white belt after mission banner fades
+    setTimeout(() => {
+      setShowWhiteBelt(false);
+      
+      // Transition to starting state after white belt fades out
+      setTimeout(() => {
+        proceedToStartGame();
+      }, 500);
+    }, 500);
   };
   
   const proceedToStartGame = () => {
@@ -130,24 +267,11 @@ const RedLight: React.FC = () => {
     setGameState('starting');
     setButtonActive(false); // Make button inactive initially
     
-    // Prepare video but don't play it yet
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.pause(); // Ensure video is paused during transition
-    }
-    
     // After the fade effect completes, set to playing video state
     setTimeout(() => {
       setGameState('playingVideo');
-    }, 1500); // Match this to the duration of the fade animation
+    }, 1000); // Match this to the duration of the fade animation
   };
-
-  // Video loading ready handler
-  useEffect(() => {
-    if (videoReady && gameState === 'loading') {
-      proceedToStartGame();
-    }
-  }, [videoReady]);
 
   // Handle tap button click
   const handleTapClick = () => {
@@ -180,7 +304,22 @@ const RedLight: React.FC = () => {
     setOpenModal(false);
     setButtonActive(false);
     setVideoError(null);
+    setShowMissionBanner(false);
+    setShowWhiteBelt(false);
   };
+
+  // Add debugging to see when these states change
+  useEffect(() => {
+    console.log("Mission Banner State:", showMissionBanner);
+    console.log("White Belt State:", showWhiteBelt);
+  }, [showMissionBanner, showWhiteBelt]);
+
+  // Ensure initial state is set correctly
+  useEffect(() => {
+    // Make absolutely sure these are false on mount
+    setShowMissionBanner(false);
+    setShowWhiteBelt(false);
+  }, []);
 
   return (
     <Box
@@ -376,6 +515,13 @@ const RedLight: React.FC = () => {
           </Box>
         )}
 
+        {/* Mission Banner and White Belt Overlay - Only include in the DOM when they should be visible */}
+        {showWhiteBelt && <WhiteBelt visible={true} />}
+        {showMissionBanner && <MissionBanner 
+          visible={true} 
+          onAnimationComplete={handleMissionBannerComplete} 
+        />}
+
         {/* Video Element */}
         <video 
           ref={videoRef}
@@ -389,7 +535,7 @@ const RedLight: React.FC = () => {
             zIndex: 1,
             opacity: gameState === 'starting' ? 0 : 1,
             transition: "opacity 0.5s ease-in-out",
-            display: gameState === 'init' ? "none" : "block", // Only create the video element when needed
+            display: ['init', 'missionIntro'].includes(gameState) ? "none" : "block", // Only create the video element when needed
           }}
           onEnded={handleVideoEnd}
           muted
