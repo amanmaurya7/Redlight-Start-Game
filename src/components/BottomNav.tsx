@@ -67,6 +67,7 @@ const BottomNav: React.FC = () => {
                 />
                 <BottomNavigationAction 
                     label="DRIVER" 
+                    onClick={() => window.location.href = 'https://redlight-one.vercel.app/'}
                     icon={ <svg
                         xmlns="http://www.w3.org/2000/svg"
                         id="ハンドルアイコン1"
@@ -106,6 +107,7 @@ const BottomNav: React.FC = () => {
                 />
                 <BottomNavigationAction 
                     label="CIRCUIT" 
+                    onClick={() => window.location.href = 'https://finger-circuit-game.vercel.app/'}
                     icon={<svg
                         xmlns="http://www.w3.org/2000/svg"
                         width="24.466"

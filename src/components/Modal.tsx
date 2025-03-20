@@ -136,6 +136,14 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
 #F1jp #F1日本グランプリ`
 
     try {
+      // First, try to copy the text to clipboard regardless of share API
+      try {
+        await navigator.clipboard.writeText(shareText)
+        console.log("Share text copied to clipboard")
+      } catch (clipError) {
+        console.error("Failed to copy to clipboard:", clipError)
+      }
+      
       if (navigator.share) {
         const res = await fetch(scoreImageUrl)
         const blob = await res.blob()
@@ -150,24 +158,20 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
       } else {
         // If Web Share API isn't available or fails, fall back to download
         downloadImage()
-        // Also show the text that would have been shared
-        console.log("Share text (copied to clipboard):", shareText)
-        try {
-          await navigator.clipboard.writeText(shareText)
-        } catch (error) {
-          console.error("Failed to copy share text to clipboard:", error)
-        }
+        // Show a message that text was copied
+        alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
       }
     } catch (error) {
       console.error("Error sharing:", error)
       downloadImage()
-      // Try to copy the text to clipboard as a fallback
+      
+      // Show a message that text was copied (or attempted to copy)
       try {
         await navigator.clipboard.writeText(shareText)
-        alert("Image downloaded. Share text copied to clipboard!")
+        alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
       } catch (clipboardError) {
         console.error("Failed to copy share text to clipboard:", clipboardError)
-        alert("Image downloaded. Please copy your score manually.")
+        alert("画像をダウンロードしました。スコアを手動でコピーしてください。")
       }
     }
   }
