@@ -57,6 +57,7 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
         borderRadius: "10px",
         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
         display: opacity === 0 ? 'none' : 'block',
+        fontFamily: "'MyCustomFont', sans-serif",
         '@media screen and (max-height: 500px)': {
           padding: '12px 18px',
         }
@@ -69,6 +70,7 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
           fontSize: "18px",
           margin: 0,
           fontWeight: "bold",
+          fontFamily: "'MyCustomFont', sans-serif",
           '@media screen and (max-height: 500px)': {
             fontSize: '16px',
           }
@@ -80,15 +82,16 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
         component="p"
         sx={{
           color: "black",
-          fontSize: "14px",
+          fontSize: "12px",
           margin: "8px 0 0",
+          fontFamily: "'MyCustomFont', sans-serif",
           '@media screen and (max-height: 500px)': {
             fontSize: '13px',
             marginTop: '6px',
           }
         }}
       >
-        赤信号が消えたらすぐにタップしよう！
+       ライトが消えたらアクセルを踏んで発進しよう！
       </Box>
     </Box>
   );
@@ -306,6 +309,7 @@ const RedLight: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: '#242424', // Match the dark background from the design
+        fontFamily: "'MyCustomFont', sans-serif",
       }}
     >
       {/* Title banner replacing the SVG header */}
@@ -326,6 +330,7 @@ const RedLight: React.FC = () => {
           justifyContent: 'center',
           alignItems: 'center',
           height: '70px',
+          fontFamily: "'MyCustomFont', sans-serif",
           '@media screen and (max-height: 500px)': {
             height: '50px',
             padding: '5px 0',
@@ -340,6 +345,7 @@ const RedLight: React.FC = () => {
             margin: 0,
             letterSpacing: '1px',
             fontWeight: 'normal',
+            fontFamily: "'MyCustomFont', sans-serif",
             '@media screen and (max-height: 500px)': {
               fontSize: '16px',
             },
@@ -357,6 +363,7 @@ const RedLight: React.FC = () => {
             fontSize: '14px',
             margin: '5px 0 0',
             fontWeight: 'normal',
+            fontFamily: "'MyCustomFont', sans-serif",
             '@media screen and (max-height: 500px)': {
               fontSize: '12px',
               marginTop: '2px',
@@ -381,6 +388,7 @@ const RedLight: React.FC = () => {
           alignItems: "center",
           justifyContent: "space-between",
           flex: 1,
+          fontFamily: "'MyCustomFont', sans-serif",
         }}
       >
         {/* Initial screen - with fade-out animation when state changes */}
@@ -400,6 +408,7 @@ const RedLight: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               background: "linear-gradient(to bottom, #ff6b6b 0%, #c23616 50%, #192a56 100%)",
+              fontFamily: "'MyCustomFont', sans-serif",
             }}
           >
             <Box
@@ -431,12 +440,13 @@ const RedLight: React.FC = () => {
                 zIndex: 4,
                 opacity: isTransitioning ? 0 : 1, // Fade out during transition
                 transition: "opacity 2s ease-in-out", // Update to 2 seconds to match
+                fontFamily: "'MyCustomFont', sans-serif",
               }}
             >
               {gameState === 'loading' ? (
                 <>
                   <CircularProgress sx={{ color: 'white', mb: 1 }} />
-                  <Box sx={{ color: 'white', fontSize: '16px', mt: 1 }}>Loading...</Box>
+                  <Box sx={{ color: 'white', fontSize: '16px', mt: 1, fontFamily: "'MyCustomFont', sans-serif" }}>Loading...</Box>
                 </>
               ) : (
                 <Box
@@ -456,6 +466,7 @@ const RedLight: React.FC = () => {
                     cursor: gameState === 'init' ? "pointer" : "default",
                     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                     transition: "all 0.3s ease",
+                    fontFamily: "'MyCustomFont', sans-serif",
                     "&:hover": {
                       backgroundColor: gameState === 'init' ? "#dcdde1" : "#f5f6fa",
                       transform: gameState === 'init' ? "translateY(-2px)" : "none",
@@ -479,7 +490,8 @@ const RedLight: React.FC = () => {
                   padding: '8px 12px',
                   borderRadius: '4px',
                   marginTop: '10px',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  fontFamily: "'MyCustomFont', sans-serif"
                 }}>
                   {videoError}
                 </Box>

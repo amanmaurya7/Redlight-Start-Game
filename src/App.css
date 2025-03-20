@@ -17,6 +17,7 @@ body {
   height: 100vh;
   margin: 0;
   padding: 0;
+  font-family: 'MyCustomFont', sans-serif;
 }
 
 /* Enhanced pulse animation for the action button */
@@ -77,7 +78,7 @@ button {
   background: none;
   border: none;
   padding: 0;
-  font: inherit;
+  font-family: 'MyCustomFont', sans-serif;
   cursor: pointer;
   outline: inherit;
 }

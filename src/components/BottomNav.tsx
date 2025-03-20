@@ -17,6 +17,7 @@ const BottomNav: React.FC = () => {
                 zIndex: 1000, 
                 width: "100%",
                 borderRadius: 0,
+                fontFamily: "'MyCustomFont', sans-serif",
             }} 
             elevation={0}
         >
@@ -28,6 +29,7 @@ const BottomNav: React.FC = () => {
                     backgroundColor: "#ff0000", 
                     color: "white",
                     height: "60px",
+                    fontFamily: "'MyCustomFont', sans-serif",
                 }}
             >
                 <BottomNavigationAction 
@@ -52,11 +54,13 @@ const BottomNav: React.FC = () => {
                             color: "white",
                             fontSize: "0.6rem",
                             fontWeight: "bold",
-                            marginTop: "4px"
+                            marginTop: "4px",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         },
                         "&.Mui-selected": {
                             transform: "none",
-                            color: "white"
+                            color: "white",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         }
                     }} 
                 />
@@ -89,11 +93,13 @@ const BottomNav: React.FC = () => {
                             color: "white",
                             fontSize: "0.7rem",
                             fontWeight: "bold",
-                            marginTop: "4px"
+                            marginTop: "4px",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         },
                         "&.Mui-selected": {
                             transform: "none",
-                            color: "white"
+                            color: "white",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         }
                     }} 
                 />
@@ -119,11 +125,13 @@ const BottomNav: React.FC = () => {
                             color: "white",
                             fontSize: "0.7rem",
                             fontWeight: "bold",
-                            marginTop: "4px"
+                            marginTop: "4px",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         },
                         "&.Mui-selected": {
                             transform: "none",
-                            color: "white"
+                            color: "white",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         }
                     }} 
                 />
@@ -164,11 +172,13 @@ const BottomNav: React.FC = () => {
                             color: "white",
                             fontSize: "0.7rem",
                             fontWeight: "bold",
-                            marginTop: "4px"
+                            marginTop: "4px",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         },
                         "&.Mui-selected": {
                             transform: "none",
-                            color: "white"
+                            color: "white",
+                            fontFamily: "'MyCustomFont', sans-serif",
                         }
                     }} 
                 />
