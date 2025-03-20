@@ -133,6 +133,9 @@ const RedLight: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
 
+  // Add a transitioning state to track the transition period
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   // Preload video when component mounts
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -220,16 +223,24 @@ const RedLight: React.FC = () => {
     };
   }, [gameState]);
 
+  // Modify startGame to add a 2-second transition delay
   const startGame = () => {
     console.log("Start button clicked");
     
-    // Set game state directly to playingVideo
-    setGameState('playingVideo'); 
+    // First set transitioning state to true
+    setIsTransitioning(true);
     
-    // Show mission banner on top of the playing video
-    setShowMissionBanner(true);
-    
-    // No need to prepare video separately as we'll play it immediately
+    // Add a 2-second delay before starting the video and showing mission banner
+    setTimeout(() => {
+      // Set game state to playingVideo after the delay
+      setGameState('playingVideo');
+      
+      // Show mission banner on top of the playing video
+      setShowMissionBanner(true);
+      
+      // Reset transitioning state
+      setIsTransitioning(false);
+    }, 2000); // Changed to 2 seconds delay
   };
   
   // Handle mission banner animation completion
@@ -373,7 +384,7 @@ const RedLight: React.FC = () => {
         }}
       >
         {/* Initial screen - with fade-out animation when state changes */}
-        {(gameState === 'init' || gameState === 'starting' || gameState === 'loading') && (
+        {(gameState === 'init' || gameState === 'starting' || gameState === 'loading' || isTransitioning) && (
           <Box
             sx={{
               position: "absolute",
@@ -381,9 +392,9 @@ const RedLight: React.FC = () => {
               left: 0,
               width: "100%",
               height: "100%",
-              zIndex: gameState === 'starting' ? 3 : 1,
-              opacity: gameState === 'starting' ? 0 : 1,
-              transition: "opacity 1s ease-in-out",
+              zIndex: isTransitioning ? 3 : 1, // Higher z-index during transition
+              opacity: isTransitioning ? 0 : 1, // Fade out during transition
+              transition: "opacity 2s ease-in-out", // Update to 2 seconds to match
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -418,8 +429,8 @@ const RedLight: React.FC = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 zIndex: 4,
-                opacity: gameState === 'starting' ? 0 : 1,
-                transition: "opacity 0.5s ease-in-out",
+                opacity: isTransitioning ? 0 : 1, // Fade out during transition
+                transition: "opacity 2s ease-in-out", // Update to 2 seconds to match
               }}
             >
               {gameState === 'loading' ? (
