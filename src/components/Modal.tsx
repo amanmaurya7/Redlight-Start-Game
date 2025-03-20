@@ -23,7 +23,7 @@ interface ModalProps {
   onMap: () => void
 }
 
-const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onMap }) => {
+const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
   const [shareModalOpen, setShareModalOpen] = useState(false)
@@ -128,7 +128,12 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
   const shareScore = async () => {
     if (!scoreImageUrl) return
 
-    const shareText = `My reaction time is ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}!`
+    const shareText = `#リアクションタイムテスト に挑戦！
+結果はこちら！あなたの反応速度はどれくらい？🏎️💨
+${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
+"F1 Japanese GP" LINE公式アカウントを友だち追加して、今すぐチャレンジ！👇
+https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
+#F1jp #F1日本グランプリ`
 
     try {
       if (navigator.share) {
@@ -475,19 +480,21 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry, onM
             <Button
               fullWidth
               sx={{
-                bgcolor: "white", // White background to match image
-                color: "black", // Black text to match image
-                borderRadius: "24px",
-                padding: "12px",
-                fontSize: "16px",
-                fontWeight: "normal",
-                textTransform: "none",
-                width: "90%",
-                marginBottom: "60px",
-                "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
-                ...fontStyle,
+              bgcolor: "white", // White background to match image
+              color: "black", // Black text to match image
+              borderRadius: "24px",
+              padding: "12px",
+              fontSize: "16px",
+              fontWeight: "normal",
+              textTransform: "none",
+              width: "90%",
+              marginBottom: "60px",
+              "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
+              ...fontStyle,
               }}
-              onClick={onMap}
+              onClick={() => {
+              window.location.href = 'https://new-jp-map.vercel.app/';
+              }}
             >
               マップに戻る
             </Button>

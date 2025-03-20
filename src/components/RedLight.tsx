@@ -97,29 +97,7 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
   );
 };
 
-const WhiteBelt = ({ visible }: { visible: boolean }) => {
-  // Return null if not visible instead of relying only on CSS
-  if (!visible) return null;
-  
-  return (
-    <Box 
-      sx={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        zIndex: 9,
-        display: visible ? "flex" : "none",
-        justifyContent: "center",
-        alignItems: "center",
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.5s ease",
-        backgroundColor: "#ffffff"
-      }}
-    />
-  );
-};
+
 
 const RedLight: React.FC = () => {
   const [gameState, setGameState] = useState<'init' | 'loading' | 'missionIntro' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
@@ -127,7 +105,7 @@ const RedLight: React.FC = () => {
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
-  const [videoReady, setVideoReady] = useState(false);
+  const [, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   
   // We only need showMissionBanner now - no need for white belt
