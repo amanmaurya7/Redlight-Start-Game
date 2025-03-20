@@ -275,20 +275,53 @@ const RedLight: React.FC = () => {
     setShowMissionBanner(false);
   }, []);
 
+  // Create a handler to prevent default touch actions on the entire app
+  const preventDefaultTouchAction = (e: TouchEvent) => {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    }
+  };
+
+  // Add event listener to prevent pinch zoom and other touch gestures
+  useEffect(() => {
+    document.addEventListener('touchmove', preventDefaultTouchAction, { passive: false });
+    
+    // Ensure the viewport meta tag is set correctly
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    if (viewportMeta) {
+      viewportMeta.setAttribute('content', 
+        'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no');
+    } else {
+      // If viewport meta doesn't exist, create it
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no';
+      document.head.appendChild(meta);
+    }
+    
+    return () => {
+      document.removeEventListener('touchmove', preventDefaultTouchAction);
+    };
+  }, []);
+
   return (
     <Box
       sx={{
         width: '100%',
         height: '100vh',
         overflow: 'hidden',
-        position: 'relative',
+        position: 'fixed', // Change from relative to fixed to prevent scrolling
+        top: 0,
+        left: 0,
         padding: 0,
         margin: 0,
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#242424', // Match the dark background from the design
+        backgroundColor: '#242424',
         fontFamily: "'MyCustomFont', sans-serif",
+        touchAction: 'none', // Disable browser handling of all touch gestures
       }}
+      onTouchMove={(e) => e.preventDefault()} // Additional prevention of touch moves
     >
       {/* Title banner replacing the SVG header */}
       <Box 
@@ -302,7 +335,7 @@ const RedLight: React.FC = () => {
           borderRadius: '0 0 20px 20px',
           textAlign: 'center',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-          zIndex: 100,
+          zIndex: 1000, // Increased to match bottom nav z-index for consistency
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',

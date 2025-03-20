@@ -14,12 +14,13 @@ const BottomNav: React.FC = () => {
                 bottom: 0, 
                 left: 0, 
                 right: 0, 
+                // Ensure bottom nav stays on top of modal
                 zIndex: 1000, 
                 width: "100%",
                 borderRadius: 0,
                 fontFamily: "'MyCustomFont', sans-serif",
             }} 
-            elevation={0}
+            elevation={3} // Increased elevation for better shadow
         >
             <BottomNavigation
                 value={value}
