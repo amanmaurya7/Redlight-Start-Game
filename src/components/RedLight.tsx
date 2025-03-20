@@ -127,9 +127,8 @@ const RedLight: React.FC = () => {
   const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   
-  // Explicitly initialize these to false
+  // We only need showMissionBanner now - no need for white belt
   const [showMissionBanner, setShowMissionBanner] = useState(false);
-  const [showWhiteBelt, setShowWhiteBelt] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
@@ -223,54 +222,20 @@ const RedLight: React.FC = () => {
 
   const startGame = () => {
     console.log("Start button clicked");
-    // Only show mission banner when the start button is clicked
-    setGameState('missionIntro');
-    setShowWhiteBelt(true);
+    
+    // Set game state directly to playingVideo
+    setGameState('playingVideo'); 
+    
+    // Show mission banner on top of the playing video
     setShowMissionBanner(true);
     
-    // Prepare video but don't play it yet
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.pause();
-    }
-    
-    // We'll still load the video in the background if not ready
-    if (!videoReady) {
-      // Add a fallback timeout in case video never reaches ready state
-      const fallbackTimer = setTimeout(() => {
-        if (!videoReady && videoRef.current) {
-          setVideoReady(true); // Force video ready state after timeout
-        }
-      }, 3000);
-      
-      return () => clearTimeout(fallbackTimer);
-    }
+    // No need to prepare video separately as we'll play it immediately
   };
   
   // Handle mission banner animation completion
   const handleMissionBannerComplete = () => {
+    // Just hide the banner, video is already playing
     setShowMissionBanner(false);
-    
-    // Fade out white belt after mission banner fades
-    setTimeout(() => {
-      setShowWhiteBelt(false);
-      
-      // Transition to starting state after white belt fades out
-      setTimeout(() => {
-        proceedToStartGame();
-      }, 500);
-    }, 500);
-  };
-  
-  const proceedToStartGame = () => {
-    // First set state to starting to begin transition
-    setGameState('starting');
-    setButtonActive(false); // Make button inactive initially
-    
-    // After the fade effect completes, set to playing video state
-    setTimeout(() => {
-      setGameState('playingVideo');
-    }, 1000); // Match this to the duration of the fade animation
   };
 
   // Handle tap button click
@@ -305,20 +270,17 @@ const RedLight: React.FC = () => {
     setButtonActive(false);
     setVideoError(null);
     setShowMissionBanner(false);
-    setShowWhiteBelt(false);
   };
 
   // Add debugging to see when these states change
   useEffect(() => {
     console.log("Mission Banner State:", showMissionBanner);
-    console.log("White Belt State:", showWhiteBelt);
-  }, [showMissionBanner, showWhiteBelt]);
+  }, [showMissionBanner]);
 
   // Ensure initial state is set correctly
   useEffect(() => {
     // Make absolutely sure these are false on mount
     setShowMissionBanner(false);
-    setShowWhiteBelt(false);
   }, []);
 
   return (
@@ -516,7 +478,6 @@ const RedLight: React.FC = () => {
         )}
 
         {/* Mission Banner and White Belt Overlay - Only include in the DOM when they should be visible */}
-        {showWhiteBelt && <WhiteBelt visible={true} />}
         {showMissionBanner && <MissionBanner 
           visible={true} 
           onAnimationComplete={handleMissionBannerComplete} 
@@ -533,9 +494,9 @@ const RedLight: React.FC = () => {
             height: "100%",
             objectFit: "cover",
             zIndex: 1,
-            opacity: gameState === 'starting' ? 0 : 1,
+            opacity: 1, // Always fully visible
             transition: "opacity 0.5s ease-in-out",
-            display: ['init', 'missionIntro'].includes(gameState) ? "none" : "block", // Only create the video element when needed
+            display: gameState === 'init' ? "none" : "block", // Show in all states except init
           }}
           onEnded={handleVideoEnd}
           muted
