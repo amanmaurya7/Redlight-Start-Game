@@ -42,19 +42,18 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
     <Box 
       sx={{
         position: "absolute",
-        left: "50%",
+        left: 0,
+        right: 0,
         top: "50%",
-        transform: "translate(-50%, -50%)",
+        transform: "translateY(-50%)",
         marginTop: "50px",
-        width: "80%",
-        maxWidth: "400px",
+        width: "100%", // Full width
         background: "rgba(255, 255, 255, 0.95)",
         padding: "15px 20px",
         textAlign: "center",
         zIndex: 10,
         opacity: opacity,
         transition: "opacity 0.5s ease",
-        borderRadius: "10px",
         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
         display: opacity === 0 ? 'none' : 'block',
         fontFamily: "'MyCustomFont', sans-serif",
