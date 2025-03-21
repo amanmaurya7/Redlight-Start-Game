@@ -364,7 +364,7 @@ const RedLight: React.FC = () => {
             }
           }}
         >
-          <span className="highlight-red">R</span>EDLIGHT STA<span className="highlight-red">R</span>T
+          <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
         </Box>
         <Box
           component="h2"

@@ -136,7 +136,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
 #F1jp #F1日本グランプリ`
 
     try {
-      // Always attempt to copy to clipboard first for backup
+      // Always attempt to copy to clipboard first for backup sharing option
       try {
         await navigator.clipboard.writeText(shareText)
         console.log("Share text copied to clipboard")
@@ -144,90 +144,121 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
         console.error("Failed to copy to clipboard:", clipError)
       }
 
-      // Check if Web Share API is available with file support
-      const supportsShareWithFiles = 
-        typeof navigator.share === 'function' && 
-        typeof navigator.canShare === 'function' && 
-        typeof ClipboardItem !== 'undefined';
+      // Determine device capabilities
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const isWebShareSupported = typeof navigator.share === 'function';
+      const isFileShareSupported = 
+        isWebShareSupported && 
+        typeof navigator.canShare === 'function';
       
-      if (supportsShareWithFiles) {
+      if (isWebShareSupported) {
         try {
-          // Prepare the image file for sharing
-          const res = await fetch(scoreImageUrl)
-          const blob = await res.blob()
-          const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
-          
-          // Create share data with both text and image
-          const shareData = {
-            title: "リアクションタイムテスト",
-            text: shareText,
-            files: [file]
-          };
-          
-          // Test if the browser can share this specific content
-          if (navigator.canShare(shareData)) {
-            await navigator.share(shareData)
-            console.log("Shared successfully with image and text")
-            setShareModalOpen(false)
-            return; // Exit after successful share
-          } else {
-            console.log("Cannot share files, falling back to text-only share")
+          // Try file sharing first if supported
+          if (isFileShareSupported) {
+            // Prepare the image file for sharing
+            const res = await fetch(scoreImageUrl);
+            const blob = await res.blob();
+            const file = new File([blob], "reaction-time-score.png", { type: "image/png" });
+            
+            // Create share data with both text and image
+            const shareData = {
+              title: "リアクションタイムテスト",
+              text: shareText,
+              files: [file]
+            };
+            
+            // Check if this specific content can be shared (important for iOS)
+            if (navigator.canShare && navigator.canShare(shareData)) {
+              await navigator.share(shareData);
+              console.log("Shared successfully with image and text");
+              setShareModalOpen(false);
+              return; // Exit after successful share
+            } else {
+              console.log("File sharing not supported, trying text-only share");
+            }
           }
-        } catch (fileShareError) {
-          console.error("Error sharing with file:", fileShareError)
-        }
-        
-        // Try text-only sharing as fallback if file sharing fails
-        try {
+          
+          // Fall back to text-only sharing
           await navigator.share({
             title: "リアクションタイムテスト",
             text: shareText,
-          })
-          console.log("Shared text only successfully")
-          setShareModalOpen(false)
+            url: window.location.href, // Add URL to improve sharing options
+          });
+          console.log("Shared text only successfully");
+          setShareModalOpen(false);
           return; // Exit after successful share
-        } catch (textShareError) {
-          console.error("Error sharing text:", textShareError)
+        } catch (shareError) {
+          console.error("Error during Web Share API:", shareError);
+          
+          // Special handling for user cancellation
+          if (shareError && typeof shareError === 'object' && 'name' in shareError && shareError.name === 'AbortError') {
+            console.log("User cancelled sharing");
+            return; // Don't proceed to fallback if user cancelled
+          }
         }
       }
       
-      // If we got here, sharing wasn't successful, use fallback
-      downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
-      setShareModalOpen(false)
+      // Enhanced fallback for iOS that doesn't support direct file sharing
+      if (isIOS) {
+        try {
+          // Create a temporary anchor to download the image
+          const downloadLink = document.createElement("a");
+          downloadLink.href = scoreImageUrl;
+          downloadLink.download = "reaction-time-score.png";
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+          
+          setShareModalOpen(false);
+          return;
+        } catch (iosError) {
+          console.error("iOS fallback failed:", iosError);
+        }
+      }
+      
+      // Final fallback for all other devices
+      downloadImage();
+      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。");
+      setShareModalOpen(false);
       
     } catch (error) {
-      console.error("Error in sharing process:", error)
-      downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
-      setShareModalOpen(false)
+      console.error("Error in sharing process:", error);
+      downloadImage();
+      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。");
+      setShareModalOpen(false);
     }
   }
   
-  // Enhance download image function to also copy text to clipboard
+  // Enhance download image function with better error handling
   const downloadImage = async () => {
     if (!scoreImageUrl) return
 
-    // Create download link
-    const downloadLink = document.createElement("a")
-    downloadLink.href = scoreImageUrl
-    downloadLink.download = "reaction-time-score.png"
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    document.body.removeChild(downloadLink)
-    
-    // Try to copy text to clipboard as part of download action
-    const shareText = `#リアクションタイムテスト に挑戦！
+    try {
+      // Create download link
+      const downloadLink = document.createElement("a");
+      downloadLink.href = scoreImageUrl;
+      downloadLink.download = "reaction-time-score.png";
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Try to copy text to clipboard as part of download action
+      const shareText = `#リアクションタイムテスト に挑戦！
 結果はこちら！あなたの反応速度はどれくらい？🏎️💨
 ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
 "F1 Japanese GP" LINE公式アカウントを友だち追加して、今すぐチャレンジ！👇
 https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
-#F1jp #F1日本グランプリ`
-    
-    try {
-      await navigator.clipboard.writeText(shareText)
-    } catch (error) {
-      console.error("Failed to copy share text to clipboard:", error)
+#F1jp #F1日本グランプリ`;
+      
+      try {
+        await navigator.clipboard.writeText(shareText);
+        console.log("Share text copied to clipboard during download");
+      } catch (clipError) {
+        console.error("Failed to copy share text to clipboard:", clipError);
+      }
+    } catch (downloadError) {
+      console.error("Download failed:", downloadError);
+      alert("画像のダウンロードに失敗しました。");
     }
   }
 
