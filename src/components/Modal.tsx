@@ -366,12 +366,12 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                     textShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                     textAlign: "center",
                     fontWeight: "bold",
-                    fontSize: {xs: 28, sm: 28, md: 30},
+                    fontSize: {xs: 24, sm: 24, md: 36},
                     letterSpacing: 1,
                     ...fontStyle,
                   }}
                 >
-                  REDLIGHT START
+                  REACTION TIME TEST
                 </Typography>
                 
                 {/* TIME text */}
