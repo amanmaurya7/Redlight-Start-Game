@@ -383,7 +383,7 @@ const RedLight: React.FC = () => {
             },
           }}
         >
-          レッドライトスタート
+          リアクションタイムテスト
         </Box>
       </Box>
 
