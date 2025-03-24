@@ -235,23 +235,84 @@ const RedLight: React.FC = () => {
       const timeDiff = Date.now() - reactionStartTime;
       setReactionTime(timeDiff);
       setGameState('continuingVideo');
+      setButtonActive(false); // Disable button after click
       
       if (videoRef.current) {
-        // Continue from the current position
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(_error => {
-          });
-        }
+        // Add a small timeout to ensure state updates before playing
+        setTimeout(() => {
+          if (videoRef.current) {
+            // Make sure video continues playing
+            const playPromise = videoRef.current.play();
+            if (playPromise !== undefined) {
+              playPromise
+                .then(() => {
+                  console.log("Video continuing successfully");
+                })
+                .catch(error => {
+                  console.error("Error resuming video:", error);
+                  // If there's an error, still show the results
+                  setGameState('results');
+                  setOpenModal(true);
+                });
+            }
+          }
+        }, 50);
       }
     }
   };
 
-  // Video ended handler
+  // Video ended handler - improved for reliability
   const handleVideoEnd = () => {
+    console.log("Video ended, showing results");
     setGameState('results');
+    // Open modal immediately
     setOpenModal(true);
   };
+
+  // Enhanced video effect to handle the video ending properly
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    
+    if (videoElement) {
+      // Set up event listener for video ending
+      const handleVideoEnded = () => {
+        console.log("Video ended event triggered");
+        setGameState('results');
+        setOpenModal(true);
+      };
+      
+      videoElement.addEventListener('ended', handleVideoEnded);
+      
+      return () => {
+        videoElement.removeEventListener('ended', handleVideoEnded);
+      };
+    }
+  }, []);
+
+  // Modified state change side effects
+  useEffect(() => {
+    if (gameState === 'continuingVideo') {
+      // Make sure video continues to the end
+      if (videoRef.current) {
+        // Set an additional check that the video is actually playing
+        const checkVideoPlaying = setInterval(() => {
+          if (videoRef.current && videoRef.current.paused) {
+            console.log("Video appears to be paused when it should be playing, attempting to restart");
+            videoRef.current.play().catch(err => console.error("Error restarting video:", err));
+          }
+        }, 200);
+        
+        // Clear the interval after a reasonable time (video should be about 10 seconds)
+        setTimeout(() => {
+          clearInterval(checkVideoPlaying);
+        }, 10000);
+        
+        return () => {
+          clearInterval(checkVideoPlaying);
+        };
+      }
+    }
+  }, [gameState]);
 
   const handleRestartGame = () => {
     setGameState('init');
