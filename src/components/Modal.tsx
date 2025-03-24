@@ -556,27 +556,25 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             </Button>
 
             {/* Back to Map Button - Updated to match image */}
-            <Button
-              fullWidth
-              sx={{
-              bgcolor: "white", // White background to match image
-              color: "black", // Black text to match image
-              borderRadius: "24px",
-              padding: "12px",
-              fontSize: "16px",
-              fontWeight: "normal",
-              textTransform: "none",
-              width: "90%",
-              marginBottom: "60px",
-              "&:hover": { bgcolor: "rgba(240, 240, 240, 1)" },
-              ...fontStyle,
-              }}
-              onClick={() => {
-              window.location.href = 'https://new-jp-map.vercel.app/';
+            <button 
+              onClick={() => window.location.href = 'https://new-jp-map.vercel.app/'} 
+              style={{ 
+                marginBottom: '60px', 
+                padding: '12px', 
+                width: '90%', 
+                borderRadius: '24px',
+                backgroundColor: 'white',
+                color: 'black',
+                fontSize: '16px',
+                textAlign: 'center',
+                ...fontStyle,
               }}
             >
-              マップに戻る
-            </Button>
+              <strong className="font-normal">
+                CI<span style={{ color: '#ff0000' }}>R</span>CUIT JOURN
+                <span style={{ color: '#ff0000' }}>E</span>Y
+              </strong>
+            </button>
           </Box>
         </Box>
       </MuiModal>
