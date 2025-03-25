@@ -150,10 +150,13 @@ const RedLight: React.FC = () => {
       // Reset video to beginning if needed
       videoRef.current.currentTime = 0;
       
+      // Ensure audio is enabled
+      videoRef.current.muted = false;
+      
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => console.log("Video playing successfully"))
+          .then(() => console.log("Video playing successfully with sound"))
           .catch(error => {
             // Handle autoplay restrictions
             if (error.name === "NotAllowedError") {
@@ -241,12 +244,13 @@ const RedLight: React.FC = () => {
         // Add a small timeout to ensure state updates before playing
         setTimeout(() => {
           if (videoRef.current) {
-            // Make sure video continues playing
+            // Make sure video continues playing with audio
+            videoRef.current.muted = false; // Ensure audio is unmuted
             const playPromise = videoRef.current.play();
             if (playPromise !== undefined) {
               playPromise
                 .then(() => {
-                  console.log("Video continuing successfully");
+                  console.log("Video continuing successfully with sound");
                 })
                 .catch(error => {
                   console.error("Error resuming video:", error);
@@ -593,7 +597,6 @@ const RedLight: React.FC = () => {
             display: gameState === 'init' ? "none" : "block", // Show in all states except init
           }}
           onEnded={handleVideoEnd}
-          muted
           playsInline
           preload="auto"
           onCanPlayThrough={() => setVideoReady(true)}
