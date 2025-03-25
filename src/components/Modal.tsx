@@ -16,10 +16,9 @@ import {
 import { Share2, Download } from "lucide-react"
 import CloseIcon from "@mui/icons-material/Close"
 import html2canvas from "html2canvas"
-import backgroundImage from "../images/7.svg" // Import SVG directly
-import snsBgImage from "../images/SNS-bg.png" // Replace with actual path to your SNS-bg image
+import backgroundImage from "../images/7.svg"
+import snsBgImage from "../images/SNS-bg.png"
 
-// Define a consistent font styling to apply throughout the component
 const fontStyle = {
   fontFamily: "'MyCustomFont', sans-serif",
 }
@@ -35,17 +34,14 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
+  const isVerySmallScreen = useMediaQuery('(max-height: 600px)')
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
-  // Add a state to control when to render the SNS background element
   const [shouldRenderScoreElement, setShouldRenderScoreElement] = useState(false)
   const scoreRef = useRef<HTMLDivElement>(null)
 
-  // Don't automatically generate score card when modal opens
-  // Only prepare it when user is about to share
   useEffect(() => {
-    // Clear the image URL when modal closes to prevent stale images
     if (!open) {
       setScoreImageUrl(null)
       setShouldRenderScoreElement(false)
@@ -53,10 +49,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
   }, [open])
 
   const prepareShareImage = useCallback(() => {
-    // Only render the score element when needed
     setShouldRenderScoreElement(true)
-
-    // Use a small timeout to let the component render first
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         resolve()
@@ -67,19 +60,12 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
   const generateScoreCard = useCallback(async () => {
     try {
       if (!scoreRef.current) return null
-
       setIsGeneratingImage(true)
-
-      // Get a reference to the score element
       const scoreElement = scoreRef.current
-
-      // Before capturing, make sure it's properly visible to html2canvas
-      // but still invisible to user (off-screen)
       const originalTransform = scoreElement.style.transform
-      scoreElement.style.opacity = "1" // Make it fully opaque for capture
-      scoreElement.style.transform = "none" // Remove any transforms that might affect capture
+      scoreElement.style.opacity = "1"
+      scoreElement.style.transform = "none"
 
-      // Optimized html2canvas options
       const options = {
         scale: window.devicePixelRatio * 1.5,
         backgroundColor: null,
@@ -88,7 +74,6 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
         allowTaint: true,
         imageTimeout: 0,
         removeContainer: true,
-        // Add this to prevent scrolling issues
         windowWidth: scoreElement.offsetWidth,
         windowHeight: scoreElement.offsetHeight,
       }
@@ -96,11 +81,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
       const canvas = await html2canvas(scoreElement, options)
       const imageUrl = canvas.toDataURL("image/png", 0.9)
       setScoreImageUrl(imageUrl)
-
-      // Restore the original state
       scoreElement.style.opacity = "0"
       scoreElement.style.transform = originalTransform
-
       setIsGeneratingImage(false)
       return imageUrl
     } catch (error) {
@@ -112,19 +94,13 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
 
   const handleShareClick = async () => {
     setIsGeneratingImage(true)
-
-    // If image is already generated, open modal right away
     if (scoreImageUrl) {
       setShareModalOpen(true)
       setIsGeneratingImage(false)
       return
     }
-
     try {
-      // First prepare the share element
       await prepareShareImage()
-
-      // Then generate the image
       const imageUrl = await generateScoreCard()
       if (imageUrl) {
         setShareModalOpen(true)
@@ -144,161 +120,87 @@ ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
 https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
 #F1jp #F1日本グランプリ`
 
+    const shortTitle = `私のリアクションタイム: ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}`
+
     try {
-      // Always attempt to copy to clipboard first for backup sharing option
-      try {
-        await navigator.clipboard.writeText(shareText)
-        console.log("Share text copied to clipboard")
-      } catch (clipError) {
-        console.error("Failed to copy to clipboard:", clipError)
-      }
+      // Copy full text to clipboard as a backup
+      await navigator.clipboard.writeText(shareText)
+      console.log("Share text copied to clipboard")
 
-      // Determine device capabilities
       const isAndroid = /Android/.test(navigator.userAgent)
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
       const isWebShareSupported = typeof navigator.share === "function"
-      const isFileShareSupported = isWebShareSupported && typeof navigator.canShare === "function"
 
-      // For Android devices, we need a special approach for LINE app
-      if (isAndroid) {
-        try {
-          // Prepare the image file for sharing
-          const res = await fetch(scoreImageUrl)
-          const blob = await res.blob()
-          const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
-
-          // For Android, we'll create a special intent that includes both text and image
-          // This works better with LINE and other Android apps
-          const filesArray = [file]
-
-          // Create a special share data object for Android
-          const shareData = {
-            title: "リアクションタイムテスト",
-            text: shareText,
-            files: filesArray,
-          }
-
-          if (navigator.canShare && navigator.canShare(shareData)) {
-            await navigator.share(shareData)
-            console.log("Shared successfully with image and text on Android")
-            setShareModalOpen(false)
-            return
-          }
-        } catch (androidError) {
-          console.error("Android sharing failed:", androidError)
-        }
-      }
-
-      // Continue with the existing sharing logic for other platforms
       if (isWebShareSupported) {
-        try {
-          // Try file sharing first if supported
-          if (isFileShareSupported) {
-            // Prepare the image file for sharing
-            const res = await fetch(scoreImageUrl)
-            const blob = await res.blob()
-            const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
+        // Prepare the image file
+        const res = await fetch(scoreImageUrl)
+        const blob = await res.blob()
+        const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
 
-            // Create share data with both text and image
-            const shareData = {
-              title: "リアクションタイムテスト",
-              text: shareText,
-              files: [file],
-            }
-
-            // Check if this specific content can be shared
-            if (navigator.canShare && navigator.canShare(shareData)) {
-              await navigator.share(shareData)
-              console.log("Shared successfully with image and text")
-              setShareModalOpen(false)
-              return // Exit after successful share
-            } else {
-              console.log("File sharing not supported, trying text-only share")
-            }
-          }
-
-          // Fall back to text-only sharing
-          await navigator.share({
-            title: "リアクションタイムテスト",
-            text: shareText,
-            url: window.location.href, // Add URL to improve sharing options
-          })
-          console.log("Shared text only successfully")
-          setShareModalOpen(false)
-          return // Exit after successful share
-        } catch (shareError) {
-          console.error("Error during Web Share API:", shareError)
-
-          // Special handling for user cancellation
-          if (
-            shareError &&
-            typeof shareError === "object" &&
-            "name" in shareError &&
-            shareError.name === "AbortError"
-          ) {
-            console.log("User cancelled sharing")
-            return // Don't proceed to fallback if user cancelled
-          }
+        // Optimized share data to mimic Intent.ACTION_SEND with text and image
+        const shareData = {
+          title: shortTitle, // Used as a caption by some apps
+          text: shareText,   // Full text content
+          files: [file],     // Image file
         }
-      }
 
-      // Enhanced fallback for iOS that doesn't support direct file sharing
-      if (isIOS) {
-        try {
-          // Create a temporary anchor to download the image
-          const downloadLink = document.createElement("a")
-          downloadLink.href = scoreImageUrl
-          downloadLink.download = "reaction-time-score.png"
-          document.body.appendChild(downloadLink)
-          downloadLink.click()
-          document.body.removeChild(downloadLink)
-
+        if (navigator.canShare && navigator.canShare(shareData)) {
+          await navigator.share(shareData)
+          console.log("Shared successfully with image and text via Web Share API")
+          if (isAndroid) {
+            alert("LINEで共有する場合、テキストが表示されない場合はクリップボードから貼り付けてください。")
+          }
           setShareModalOpen(false)
           return
-        } catch (iosError) {
-          console.error("iOS fallback failed:", iosError)
         }
       }
 
-      // Final fallback for all other devices
+      // Android-specific LINE deep link fallback (text-only due to image URL limitation)
+      if (isAndroid) {
+        const encodedText = encodeURIComponent(shareText)
+        const lineUrl = `line://msg/text/${encodedText}`
+        window.location.href = lineUrl
+
+        // Check if LINE opened (rudimentary detection)
+        setTimeout(() => {
+          if (document.hasFocus()) {
+            console.log("LINE may not be installed or failed to open")
+            downloadImage()
+            alert("LINEが開かなかった場合、画像をダウンロードしました。テキストはクリップボードにコピーされています。")
+            setShareModalOpen(false)
+          } else {
+            console.log("LINE likely opened")
+            setShareModalOpen(false)
+          }
+        }, 1500)
+        return
+      }
+
+      // General fallback for non-Web Share API or failed LINE deep link
       downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
+      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
       setShareModalOpen(false)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error in sharing process:", error)
+      if (error instanceof Error && error.name === "AbortError") {
+        console.log("User cancelled sharing")
+        setShareModalOpen(false)
+        return
+      }
       downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされました。")
+      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
       setShareModalOpen(false)
     }
   }
 
-  // Enhance download image function with better error handling
   const downloadImage = async () => {
     if (!scoreImageUrl) return
-
     try {
-      // Create download link
       const downloadLink = document.createElement("a")
       downloadLink.href = scoreImageUrl
       downloadLink.download = "reaction-time-score.png"
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
-
-      // Try to copy text to clipboard as part of download action
-      const shareText = `#リアクションタイムテスト に挑戦！
-結果はこちら！あなたの反応速度はどれくらい？🏎️💨
-${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
-"F1 Japanese GP" LINE公式アカウントを友だち追加して、今すぐチャレンジ！👇
-https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
-#F1jp #F1日本グランプリ`
-
-      try {
-        await navigator.clipboard.writeText(shareText)
-        console.log("Share text copied to clipboard during download")
-      } catch (clipError) {
-        console.error("Failed to copy share text to clipboard:", clipError)
-      }
     } catch (downloadError) {
       console.error("Download failed:", downloadError)
       alert("画像のダウンロードに失敗しました。")
@@ -315,31 +217,30 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           justifyContent: "center",
           alignItems: "center",
           width: "100%",
-          height: "calc(100% - 60px)", // Only account for header height, touch the bottom nav
-          top: "60px", // Space for header
+          height: "calc(100% - 60px)",
+          top: "60px",
           position: "absolute",
           backgroundColor: "transparent",
-          zIndex: 1, // Very low z-index to stay behind header/footer
+          zIndex: 1,
           ...fontStyle,
-          // Prevent touch/drag events
           touchAction: "none",
           userSelect: "none",
+          overflow: "auto",
         }}
         BackdropProps={{
           style: {
             backgroundColor: "transparent",
             position: "absolute",
             top: "60px",
-            height: "calc(100% - 60px)", // Match modal height
-            // Prevent touch/drag events
+            height: "calc(100% - 60px)",
             touchAction: "none",
           },
         }}
-        disableScrollLock={false} // Lock scrolling
-        hideBackdrop={true} // Hide default backdrop
+        disableScrollLock={false}
+        hideBackdrop={true}
         disableAutoFocus
         disableEnforceFocus
-        disablePortal // Try rendering in place instead of in a portal
+        disablePortal
       >
         <Box
           sx={{
@@ -355,11 +256,9 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
-            overflow: "hidden", // Changed from auto to hidden to prevent scrolling
-            zIndex: 2, // Keep this still low
-            // Add padding at bottom to account for footer nav overlap
-            pb: "60px",
-            // Prevent touch/drag events
+            overflow: "auto",
+            zIndex: 2,
+            pb: isVerySmallScreen ? "10px" : "60px",
             touchAction: "none",
             userSelect: "none",
             ...fontStyle,
@@ -371,25 +270,27 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               maxWidth: "400px",
               bgcolor: "rgba(0, 0, 0, 0.7)",
               borderRadius: 0,
-              p: 3,
+              p: isVerySmallScreen ? 2 : 3,
               textAlign: "center",
-              height: "100%",
+              height: "auto", // Changed from 100% to auto
+              minHeight: isVerySmallScreen ? "80%" : "100%",
               color: "white",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              my: 2,
-              zIndex: 3, // Higher than background
+              justifyContent: "space-between",
+              my: isVerySmallScreen ? 1 : 2,
+              zIndex: 3,
+              overflow: "auto",
               ...fontStyle,
             }}
           >
-            {/* Only render the score card when needed */}
             {shouldRenderScoreElement && (
               <Box
                 ref={scoreRef}
                 sx={{
-                  width: 320, // Set fixed width for better capture
-                  height: 320, // Set fixed height for better capture
+                  width: 320,
+                  height: 320,
                   backgroundImage: `url(${snsBgImage})`,
                   backgroundPosition: "center",
                   backgroundRepeat: "no-repeat",
@@ -399,22 +300,20 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   alignItems: "center",
                   justifyContent: "center",
                   padding: 4,
-                  // Keep this element completely offscreen and hidden from user view
                   position: "fixed",
                   left: "-9999px",
                   top: "-9999px",
-                  pointerEvents: "none", // Prevent any interactions
-                  opacity: 0, // Hidden initially but will be set to 1 during capture
-                  zIndex: -999, // Ensure it's behind everything
+                  pointerEvents: "none",
+                  opacity: 0,
+                  zIndex: -999,
                   ...fontStyle,
                 }}
               >
-                {/* REDLIGHT Game text */}
                 <Typography
                   variant="h4"
                   sx={{
-                    color: "black", // Ensure text is visible against background
-                    marginTop: 20, // Significantly increased from 5 to 10 for much more space at the top
+                    color: "black",
+                    marginTop: 20,
                     textShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
                     textAlign: "center",
                     fontWeight: "bold",
@@ -425,13 +324,11 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                 >
                   REACTION TIME TEST
                 </Typography>
-
-                {/* TIME text */}
                 <Typography
                   variant="h6"
                   sx={{
                     color: "#ff6699",
-                    marginTop: 3, // Increased from 2 to 5 for more space
+                    marginTop: 3,
                     marginBottom: 1,
                     textAlign: "center",
                     fontWeight: "500",
@@ -441,8 +338,6 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                 >
                   TIME
                 </Typography>
-
-                {/* Score display */}
                 <Typography
                   sx={{
                     fontSize: { xs: 84, sm: 90, md: 100 },
@@ -474,59 +369,55 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               </Box>
             )}
 
-            {/* Regular visible score display in the modal */}
             <Box sx={{ width: "100%", ...fontStyle }}>
               <Typography
                 variant="subtitle1"
                 sx={{
                   color: "white",
-                  fontSize: "16px",
-                  marginTop: "40px",
-                  marginBottom: "70px",
+                  fontSize: isVerySmallScreen ? "14px" : "16px",
+                  marginTop: isVerySmallScreen ? "10px" : "40px",
+                  marginBottom: isVerySmallScreen ? "20px" : "70px",
                   mb: 0.5,
                   ...fontStyle,
                 }}
               >
                 ミッションクリア
               </Typography>
-
               <Typography
                 variant="h5"
                 sx={{
                   mb: 2,
                   letterSpacing: 1,
                   color: "white",
-                  marginBottom: "60px",
-                  fontSize: "33px", // Larger font size to match image
+                  marginBottom: isVerySmallScreen ? "20px" : "60px",
+                  fontSize: isVerySmallScreen ? "26px" : "33px",
                   ...fontStyle,
                 }}
               >
                 MISSION CLEAR
               </Typography>
-
               <Typography
                 sx={{
-                  fontSize: 20,
+                  fontSize: isVerySmallScreen ? 18 : 20,
                   fontWeight: "500",
                   color: "#ff6699",
-                  marginBottom: "50px",
+                  marginBottom: isVerySmallScreen ? "15px" : "50px",
                   mb: 0.5,
                   ...fontStyle,
                 }}
               >
                 SCORE
               </Typography>
-
               <Typography
                 sx={{
-                  fontSize: isMobile ? 80 : 80, // Larger font size to match image
+                  fontSize: isVerySmallScreen ? 60 : 80,
                   color: "#ff6699",
-                  marginTop: "25px",
-                  marginBottom: "150px",
-                  textShadow: "0 0 5px #ff6699", // Reduced shadow intensity
-                  mb: 3,
+                  marginTop: isVerySmallScreen ? "10px" : "25px",
+                  marginBottom: isVerySmallScreen ? "40px" : "150px",
+                  textShadow: "0 0 5px #ff6699",
+                  mb: isVerySmallScreen ? 1 : 3,
                   lineHeight: 1,
-                  animation: "subtleGlow 3s infinite", // Using a custom animation name
+                  animation: "subtleGlow 3s infinite",
                   ...fontStyle,
                 }}
               >
@@ -552,96 +443,100 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               </Typography>
             </Box>
 
-            {/* Share on SNS Button - Updated to match image and show loading indicator */}
-            <Button
-              fullWidth
-              sx={{
-                mb: 1.5,
-                bgcolor: "#3D4658",
-                color: "white",
-                borderRadius: "24px",
-                padding: "12px",
-                marginTop: "50px",
-                marginBottom: "30px",
-                fontSize: "16px",
-                fontWeight: "normal",
-                textTransform: "none",
-                width: "60%",
-                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
-                ...fontStyle,
-                position: "relative", // For positioning the loading spinner
-                // Add a smooth transition for button content
-                "& > *": {
-                  transition: "opacity 0.2s ease-in-out",
-                },
-              }}
-              onClick={handleShareClick}
-              disabled={isGeneratingImage}
-            >
-              {isGeneratingImage ? (
-                <>
-                  <CircularProgress
-                    size={16}
-                    sx={{
-                      color: "white",
-                      position: "absolute",
-                      left: "20%",
-                    }}
-                  />
-                  生成中... {/* "Generating..." in Japanese */}
-                </>
-              ) : (
-                "SNSでシェアする"
-              )}
-            </Button>
+            <Box sx={{ 
+              width: "100%", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center", 
+              mt: isVerySmallScreen ? 1 : "auto",
+              mb: isVerySmallScreen ? 1 : 0
+            }}>
+              <Button
+                fullWidth
+                sx={{
+                  mb: 1.5,
+                  bgcolor: "#3D4658",
+                  color: "white",
+                  borderRadius: "24px",
+                  padding: isVerySmallScreen ? "8px" : "12px",
+                  marginTop: isVerySmallScreen ? "10px" : "50px",
+                  marginBottom: isVerySmallScreen ? "10px" : "30px",
+                  fontSize: isVerySmallScreen ? "14px" : "16px",
+                  fontWeight: "normal",
+                  textTransform: "none",
+                  width: isVerySmallScreen ? "80%" : "60%",
+                  "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
+                  ...fontStyle,
+                  position: "relative",
+                  "& > *": {
+                    transition: "opacity 0.2s ease-in-out",
+                  },
+                }}
+                onClick={handleShareClick}
+                disabled={isGeneratingImage}
+              >
+                {isGeneratingImage ? (
+                  <>
+                    <CircularProgress
+                      size={16}
+                      sx={{
+                        color: "white",
+                        position: "absolute",
+                        left: "20%",
+                      }}
+                    />
+                    生成中...
+                  </>
+                ) : (
+                  "SNSでシェアする"
+                )}
+              </Button>
 
-            {/* Play Again Button - Updated to match image */}
-            <Button
-              fullWidth
-              sx={{
-                mb: 1.5,
-                bgcolor: "rgba(100, 100, 100, 0.7)", // Semi-transparent gray to match image
-                color: "white",
-                borderRadius: "24px",
-                marginBottom: "30px",
-                padding: "12px",
-                fontSize: "16px",
-                fontWeight: "normal",
-                textTransform: "none",
-                width: "60%",
-                "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
-                ...fontStyle,
-              }}
-              onClick={onRetry}
-            >
-              もう一度遊ぶ
-            </Button>
+              <Button
+                fullWidth
+                sx={{
+                  mb: 1.5,
+                  bgcolor: "rgba(100, 100, 100, 0.7)",
+                  color: "white",
+                  borderRadius: "24px",
+                  marginBottom: isVerySmallScreen ? "10px" : "30px",
+                  padding: isVerySmallScreen ? "8px" : "12px",
+                  fontSize: isVerySmallScreen ? "14px" : "16px",
+                  fontWeight: "normal",
+                  textTransform: "none",
+                  width: isVerySmallScreen ? "80%" : "60%",
+                  "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
+                  ...fontStyle,
+                }}
+                onClick={onRetry}
+              >
+                もう一度遊ぶ
+              </Button>
 
-            {/* Back to Map Button - Updated to match image */}
-            <button
-              onClick={() => (window.location.href = "https://new-jp-map.vercel.app/")}
-              style={{
-                marginBottom: "60px",
-                padding: "12px",
-                width: "90%",
-                borderRadius: "24px",
-                backgroundColor: "white",
-                color: "black",
-                fontSize: "16px",
-                textAlign: "center",
-                ...fontStyle,
-              }}
-            >
-              <strong className="font-normal">
-                CI<span style={{ color: "#ff0000" }}>R</span>CUIT JOURN
-                <span style={{ color: "#ff0000" }}>E</span>Y
-              </strong>
-            </button>
+              <button
+                onClick={() => (window.location.href = "https://new-jp-map.vercel.app/")}
+                style={{
+                  marginBottom: isVerySmallScreen ? "10px" : "60px",
+                  padding: isVerySmallScreen ? "8px" : "12px",
+                  width: isVerySmallScreen ? "80%" : "90%",
+                  borderRadius: "24px",
+                  backgroundColor: "white",
+                  color: "black",
+                  fontSize: isVerySmallScreen ? "14px" : "16px",
+                  textAlign: "center",
+                  ...fontStyle,
+                }}
+              >
+                <strong className="font-normal">
+                  CI<span style={{ color: "#ff0000" }}>R</span>CUIT JOURN
+                  <span style={{ color: "#ff0000" }}>E</span>Y
+                </strong>
+              </button>
+            </Box>
           </Box>
         </Box>
       </MuiModal>
 
-      {/* Share Modal - with loading state */}
       <MuiModal
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
@@ -650,36 +545,33 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           justifyContent: "center",
           alignItems: "center",
           padding: isMobile ? 2 : 0,
-          zIndex: 1500, // Highest z-index to be above everything
+          zIndex: 1500,
           ...fontStyle,
-          // Prevent touch/drag events
           touchAction: "none",
           userSelect: "none",
         }}
-        disableScrollLock={false} // Lock scrolling
+        disableScrollLock={false}
         BackdropProps={{
           style: {
-            // Prevent touch/drag events on backdrop
             touchAction: "none",
           },
         }}
       >
         <Box
           sx={{
-            width: 350, // Fixed width instead of responsive
-            maxWidth: "90vw", // Still maintain maximum constraint for very small screens
+            width: 350,
+            maxWidth: "90vw",
             bgcolor: "white",
             borderRadius: 3,
             p: 3,
             textAlign: "center",
             boxShadow: 24,
             position: "relative",
-            // Prevent touch/drag events
             touchAction: "none",
             userSelect: "none",
             ...fontStyle,
           }}
-          onClick={(e) => e.stopPropagation()} // Prevent click from bubbling
+          onClick={(e) => e.stopPropagation()}
         >
           <IconButton
             onClick={() => setShareModalOpen(false)}
@@ -697,36 +589,19 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             スコアをシェアする
           </Typography>
 
-          {!scoreImageUrl && isGeneratingImage ? (
+          {scoreImageUrl && (
             <Box
+              component="img"
+              src={scoreImageUrl}
+              alt="Your score"
               sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                py: 4,
+                width: "100%",
+                maxWidth: 300,
+                borderRadius: 2,
+                mb: 2,
+                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
               }}
-            >
-              <CircularProgress size={40} sx={{ mb: 2 }} />
-              <Typography variant="body2" sx={{ ...fontStyle }}>
-                画像を生成中... {/* "Generating image..." in Japanese */}
-              </Typography>
-            </Box>
-          ) : (
-            scoreImageUrl && (
-              <Box
-                component="img"
-                src={scoreImageUrl}
-                alt="Your score"
-                sx={{
-                  width: "100%",
-                  maxWidth: 300,
-                  borderRadius: 2,
-                  mb: 2,
-                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                }}
-              />
-            )
+            />
           )}
 
           <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
@@ -795,4 +670,3 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
 }
 
 export default Modal
-

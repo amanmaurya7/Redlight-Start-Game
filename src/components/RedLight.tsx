@@ -635,15 +635,28 @@ const RedLight: React.FC = () => {
             sx={{
               position: "absolute",
               zIndex: 2,
-              width: "120px",
+              width: "120px", // Default size
               height: "auto",
               cursor: buttonActive ? "pointer" : "default",
               bottom: "18%",
-              left: "35%",
-             
+              left: "50%", // Center the button horizontally
+              transform: "translateX(-50%)", // Ensure proper centering
               opacity: buttonActive ? 1 : 0.5,
               animation: buttonActive ? "pulse 1.5s infinite" : "none",
               transition: "opacity 0.3s ease-in-out",
+              // Responsive sizing for smaller screens
+              '@media screen and (max-width: 320px)': {
+                width: '100px',
+                bottom: '15%',
+              },
+              '@media screen and (max-height: 500px)': {
+                width: '100px',
+                bottom: '12%',
+              },
+              '@media screen and (max-height: 400px)': {
+                width: '80px',
+                bottom: '10%',
+              }
             }}
             onClick={buttonActive ? handleTapClick : undefined}
           />
