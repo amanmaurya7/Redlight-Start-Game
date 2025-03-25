@@ -375,7 +375,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                 sx={{
                   color: "white",
                   fontSize: isVerySmallScreen ? "14px" : "16px",
-                  marginTop: isVerySmallScreen ? "10px" : "40px",
+                  marginTop: isVerySmallScreen ? "10px" : "100px",
                   marginBottom: isVerySmallScreen ? "20px" : "70px",
                   mb: 0.5,
                   ...fontStyle,
@@ -413,7 +413,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   fontSize: isVerySmallScreen ? 60 : 80,
                   color: "#ff6699",
                   marginTop: isVerySmallScreen ? "10px" : "25px",
-                  marginBottom: isVerySmallScreen ? "40px" : "150px",
+                  marginBottom: isVerySmallScreen ? "40px" : "70px",
                   textShadow: "0 0 5px #ff6699",
                   mb: isVerySmallScreen ? 1 : 3,
                   lineHeight: 1,
@@ -459,7 +459,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   color: "white",
                   borderRadius: "24px",
                   padding: isVerySmallScreen ? "8px" : "12px",
-                  marginTop: isVerySmallScreen ? "10px" : "50px",
+                  marginTop: isVerySmallScreen ? "10px" : "30px",
                   marginBottom: isVerySmallScreen ? "10px" : "30px",
                   fontSize: isVerySmallScreen ? "14px" : "16px",
                   fontWeight: "normal",
@@ -516,7 +516,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               <button
                 onClick={() => (window.location.href = "https://new-jp-map.vercel.app/")}
                 style={{
-                  marginBottom: isVerySmallScreen ? "10px" : "60px",
+                  marginBottom: isVerySmallScreen ? "10px" : "150px",
                   padding: isVerySmallScreen ? "8px" : "12px",
                   width: isVerySmallScreen ? "80%" : "90%",
                   borderRadius: "24px",

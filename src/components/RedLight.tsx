@@ -116,6 +116,9 @@ const RedLight: React.FC = () => {
   // Add a transitioning state to track the transition period
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  // Add ref for the start button
+  const startButtonRef = useRef<HTMLButtonElement>(null);
+
   // Preload video when component mounts
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -332,6 +335,14 @@ const RedLight: React.FC = () => {
       setShowMissionBanner(false);
       setIsTransitioning(false); // Ensure transition state is reset
       
+      // Reset visual state of the button to default appearance
+      if (startButtonRef.current) {
+        startButtonRef.current.blur();
+        startButtonRef.current.style.backgroundColor = "#f5f6fa";
+        startButtonRef.current.style.transform = "none";
+        startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+      }
+      
       // Reset video element if it exists
       if (videoRef.current) {
         videoRef.current.pause();
@@ -379,6 +390,25 @@ const RedLight: React.FC = () => {
       document.removeEventListener('touchmove', preventDefaultTouchAction);
     };
   }, []);
+
+  // Add this new useEffect to reset button state when returning to init
+  useEffect(() => {
+    if (gameState === 'init') {
+      // Remove focus and reset visual state of button when returning to init
+      if (startButtonRef.current) {
+        startButtonRef.current.blur();
+        
+        // Add a small delay to ensure any hover/active states are cleared
+        setTimeout(() => {
+          if (startButtonRef.current) {
+            startButtonRef.current.style.backgroundColor = "#f5f6fa";
+            startButtonRef.current.style.transform = "none";
+            startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+          }
+        }, 50);
+      }
+    }
+  }, [gameState]);
 
   return (
     <Box
@@ -538,8 +568,10 @@ const RedLight: React.FC = () => {
               ) : (
                 <Box
                   component="button"
+                  ref={startButtonRef}
                   onClick={gameState === 'init' ? startGame : undefined}
                   disabled={gameState !== 'init'}
+                  className="start-button"
                   sx={{
                     width: "80%",
                     maxWidth: "280px",
@@ -566,12 +598,15 @@ const RedLight: React.FC = () => {
                     // Reset pressed state styles with !important to override any persistent :active state
                     "&:focus": {
                       outline: "none",
+                    },
+                    // Add styles to reset the button on focus-visible
+                    "&:not(:focus-visible)": {
                       backgroundColor: "#f5f6fa !important",
                       transform: "none !important",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
-                    },
+                    }
                   }}
-                  // Add key based on game state to force button re-render
+                  // Add key based on timestamp to force button re-render when state changes
                   key={`start-button-${gameState === 'init' ? 'ready' : 'disabled'}-${Date.now()}`}
                 >
                   START
