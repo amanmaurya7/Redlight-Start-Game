@@ -319,13 +319,25 @@ const RedLight: React.FC = () => {
   }, [gameState]);
 
   const handleRestartGame = () => {
-    setGameState('init');
-    setReactionTime(null);
-    setReactionStartTime(null);
+    // First close the modal
     setOpenModal(false);
-    setButtonActive(false);
-    setVideoError(null);
-    setShowMissionBanner(false);
+    
+    // Use a small delay before resetting game state to ensure proper transition
+    setTimeout(() => {
+      setGameState('init');
+      setReactionTime(null);
+      setReactionStartTime(null);
+      setButtonActive(false);
+      setVideoError(null);
+      setShowMissionBanner(false);
+      setIsTransitioning(false); // Ensure transition state is reset
+      
+      // Reset video element if it exists
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+      }
+    }, 50);
   };
 
   // Add debugging to see when these states change
@@ -551,7 +563,16 @@ const RedLight: React.FC = () => {
                       transform: gameState === 'init' ? "translateY(1px)" : "none",
                       boxShadow: gameState === 'init' ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
                     },
+                    // Reset pressed state styles with !important to override any persistent :active state
+                    "&:focus": {
+                      outline: "none",
+                      backgroundColor: "#f5f6fa !important",
+                      transform: "none !important",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
+                    },
                   }}
+                  // Add key based on game state to force button re-render
+                  key={`start-button-${gameState === 'init' ? 'ready' : 'disabled'}-${Date.now()}`}
                 >
                   START
                 </Box>
@@ -629,7 +650,7 @@ const RedLight: React.FC = () => {
         )}
       </Box>
 
-      {/* Reaction Time Modal */}
+      {/* Reaction Time Modal - Add proper touch prevention */}
       <Modal
         open={openModal}
         reactionTime={reactionTime}
