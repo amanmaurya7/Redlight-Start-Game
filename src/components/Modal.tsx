@@ -16,6 +16,7 @@ import {
 import { Share2, Download } from "lucide-react"
 import CloseIcon from "@mui/icons-material/Close"
 import html2canvas from "html2canvas"
+import liff from "@line/liff" // Import LIFF SDK
 import backgroundImage from "../images/7.svg"
 import snsBgImage from "../images/SNS-bg.png"
 
@@ -39,7 +40,22 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
   const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
   const [shouldRenderScoreElement, setShouldRenderScoreElement] = useState(false)
+  const [isInLiff, setIsInLiff] = useState(false)
   const scoreRef = useRef<HTMLDivElement>(null)
+
+  // Initialize LIFF and detect environment
+  useEffect(() => {
+    const initializeLiff = async () => {
+      try {
+        await liff.init({ liffId: "2006841295-jw19DpzR" }) // Replace with your LIFF ID
+        setIsInLiff(liff.isInClient())
+      } catch (error) {
+        console.error("LIFF initialization failed:", error)
+        setIsInLiff(false)
+      }
+    }
+    initializeLiff()
+  }, [])
 
   useEffect(() => {
     if (!open) {
@@ -51,9 +67,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
   const prepareShareImage = useCallback(() => {
     setShouldRenderScoreElement(true)
     return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        resolve()
-      }, 100)
+      setTimeout(() => resolve(), 100)
     })
   }, [])
 
@@ -123,71 +137,67 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
     const shortTitle = `私のリアクションタイム: ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}`
 
     try {
-      // Copy full text to clipboard as a backup
+      // Copy text to clipboard as a universal fallback
       await navigator.clipboard.writeText(shareText)
       console.log("Share text copied to clipboard")
 
-      const isAndroid = /Android/.test(navigator.userAgent)
-      const isWebShareSupported = typeof navigator.share === "function"
+      if (isInLiff && liff.isApiAvailable("shareTargetPicker")) {
+        // LIFF environment: Share image directly
+        await liff.shareTargetPicker([
+          {
+            type: "image",
+            originalContentUrl: scoreImageUrl,
+            previewImageUrl: scoreImageUrl,
+          },
+        ])
+        console.log("Shared image directly via LIFF shareTargetPicker")
+        setShareModalOpen(false)
+      } else {
+        // Non-LIFF environment: Use Web Share API
+        const isWebShareSupported = typeof navigator.share === "function"
+        const isAndroid = /Android/.test(navigator.userAgent)
 
-      if (isWebShareSupported) {
-        // Prepare the image file
-        const res = await fetch(scoreImageUrl)
-        const blob = await res.blob()
-        const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
+        if (isWebShareSupported) {
+          const res = await fetch(scoreImageUrl)
+          const blob = await res.blob()
+          const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
 
-        // Optimized share data to mimic Intent.ACTION_SEND with text and image
-        const shareData = {
-          title: shortTitle, // Used as a caption by some apps
-          text: shareText,   // Full text content
-          files: [file],     // Image file
+          const shareData = {
+            title: shortTitle,
+            text: shareText,
+            files: [file],
+          }
+
+          if (navigator.canShare && navigator.canShare(shareData)) {
+            await navigator.share(shareData)
+            console.log("Shared successfully with image and text via Web Share API")
+           
+            setShareModalOpen(false)
+            return
+          }
         }
 
-        if (navigator.canShare && navigator.canShare(shareData)) {
-          await navigator.share(shareData)
-          console.log("Shared successfully with image and text via Web Share API")
-          if (isAndroid) {
-            alert("LINEで共有する場合、テキストが表示されない場合はクリップボードから貼り付けてください。")
-          }
-          setShareModalOpen(false)
+        // Fallback for non-Web Share API or Android LINE deep link
+        if (isAndroid) {
+          const encodedText = encodeURIComponent(shareText)
+          const lineUrl = `line://msg/text/${encodedText}`
+          window.location.href = lineUrl
+          setTimeout(() => {
+            if (document.hasFocus()) {
+              downloadImage()
+            }
+            setShareModalOpen(false)
+          }, 1500)
           return
         }
-      }
 
-      // Android-specific LINE deep link fallback (text-only due to image URL limitation)
-      if (isAndroid) {
-        const encodedText = encodeURIComponent(shareText)
-        const lineUrl = `line://msg/text/${encodedText}`
-        window.location.href = lineUrl
-
-        // Check if LINE opened (rudimentary detection)
-        setTimeout(() => {
-          if (document.hasFocus()) {
-            console.log("LINE may not be installed or failed to open")
-            downloadImage()
-            alert("LINEが開かなかった場合、画像をダウンロードしました。テキストはクリップボードにコピーされています。")
-            setShareModalOpen(false)
-          } else {
-            console.log("LINE likely opened")
-            setShareModalOpen(false)
-          }
-        }, 1500)
-        return
-      }
-
-      // General fallback for non-Web Share API or failed LINE deep link
-      downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
-      setShareModalOpen(false)
-    } catch (error: unknown) {
-      console.error("Error in sharing process:", error)
-      if (error instanceof Error && error.name === "AbortError") {
-        console.log("User cancelled sharing")
+        downloadImage()
+        alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
         setShareModalOpen(false)
-        return
       }
+    } catch (error) {
+      console.error("Error in sharing process:", error)
       downloadImage()
-      alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
       setShareModalOpen(false)
     }
   }
@@ -207,6 +217,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
     }
   }
 
+  // Rest of the component (UI) remains unchanged
   return (
     <>
       <MuiModal
@@ -272,7 +283,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               borderRadius: 0,
               p: isVerySmallScreen ? 2 : 3,
               textAlign: "center",
-              height: "auto", // Changed from 100% to auto
+              height: "auto",
               minHeight: isVerySmallScreen ? "80%" : "100%",
               color: "white",
               display: "flex",

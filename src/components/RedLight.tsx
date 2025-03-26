@@ -677,8 +677,12 @@ const RedLight: React.FC = () => {
               left: "50%", // Center the button horizontally
               transform: "translateX(-50%)", // Ensure proper centering
               opacity: buttonActive ? 1 : 0.5,
-              animation: buttonActive ? "pulse 1.5s infinite" : "none",
               transition: "opacity 0.3s ease-in-out",
+              // Remove animation that might affect position
+              // Use a CSS filter for highlighting instead of animation that could affect position
+              filter: buttonActive ? "brightness(1.1)" : "none",
+              // Prevent any transformations that might occur from animations
+              willChange: "opacity",
               // Responsive sizing for smaller screens
               '@media screen and (max-width: 320px)': {
                 width: '100px',
