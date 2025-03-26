@@ -217,6 +217,16 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
     }
   }
 
+  // Add a new function to handle navigation away from result screen
+  const handleCircuitJourneyClick = () => {
+    // Custom event to signal audio should be stopped
+    const stopAudioEvent = new CustomEvent('stopGameAudio');
+    document.dispatchEvent(stopAudioEvent);
+    
+    // Navigate to the circuit journey page
+    window.location.href = "https://new-jp-map.vercel.app/";
+  };
+
   // Rest of the component (UI) remains unchanged
   return (
     <>
@@ -237,6 +247,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           touchAction: "none",
           userSelect: "none",
           overflow: "auto",
+          pointerEvents: "auto", // Ensure pointer events are enabled for the modal itself
         }}
         BackdropProps={{
           style: {
@@ -245,6 +256,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             top: "60px",
             height: "calc(100% - 60px)",
             touchAction: "none",
+            pointerEvents: "none", // Disable pointer events on backdrop to prevent dragging
           },
         }}
         disableScrollLock={false}
@@ -252,6 +264,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
         disableAutoFocus
         disableEnforceFocus
         disablePortal
+        disableRestoreFocus
       >
         <Box
           sx={{
@@ -267,12 +280,20 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
-            overflow: "auto",
+            overflow: "hidden", // Change from auto to hidden to prevent scrolling
             zIndex: 2,
             pb: isVerySmallScreen ? "10px" : "60px",
-            touchAction: "none",
+            touchAction: "none", // Disable all touch actions
             userSelect: "none",
+            pointerEvents: "auto", // Enable pointer events for content
             ...fontStyle,
+          }}
+          onTouchMove={(e) => {
+            e.preventDefault(); // Prevent touch movement
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation(); // Prevent mousedown from bubbling
           }}
         >
           <Box
@@ -293,7 +314,12 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               my: isVerySmallScreen ? 1 : 2,
               zIndex: 3,
               overflow: "auto",
+              touchAction: "none", // Disable touch actions here too
               ...fontStyle,
+            }}
+            onTouchMove={(e) => {
+              e.preventDefault(); // Prevent touch movement
+              e.stopPropagation();
             }}
           >
             {shouldRenderScoreElement && (
@@ -525,7 +551,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
               </Button>
 
               <button
-                onClick={() => (window.location.href = "https://new-jp-map.vercel.app/")}
+                onClick={handleCircuitJourneyClick}
                 style={{
                   marginBottom: isVerySmallScreen ? "10px" : "150px",
                   padding: isVerySmallScreen ? "8px" : "12px",
@@ -560,13 +586,16 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           ...fontStyle,
           touchAction: "none",
           userSelect: "none",
+          pointerEvents: "auto", // Enable pointer events for this modal
         }}
         disableScrollLock={false}
         BackdropProps={{
           style: {
             touchAction: "none",
+            pointerEvents: "auto", // Keep backdrop interactive but prevent actions
           },
         }}
+        disableRestoreFocus
       >
         <Box
           sx={{

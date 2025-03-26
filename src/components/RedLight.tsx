@@ -6,7 +6,11 @@ import BottomNav from "./BottomNav";
 import TapHereButton from "../images/start-button.svg";
 import Svg7 from "../images/7.svg"; // Initial screen background image
 
-import SecondVideo from '../assets/Movie2.mp4';
+// Import all three videos and sound
+import Section1Video from '../assets/F1_RTT_movie1.mp4';
+import Section2Video from '../assets/F1_RTT_movie_when_button_appear.mp4';
+import Section3Video from '../assets/F1_RTT_movie_after_user_tap_movOnly.mp4';
+import Section3Sound from '../assets/F1_RTT_movie_after_user_tap_sound.mp3';
 
 // Add MissionBanner and WhiteBelt components
 const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onAnimationComplete: () => void }) => {
@@ -99,67 +103,134 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
 
 
 const RedLight: React.FC = () => {
-  const [gameState, setGameState] = useState<'init' | 'loading' | 'missionIntro' | 'starting' | 'playingVideo' | 'waitingForTap' | 'continuingVideo' | 'results'>('init');
+  // Enhanced game state to handle the three sections
+  const [gameState, setGameState] = useState<
+    'init' | 'loading' | 'missionIntro' | 'starting' | 
+    'section1' | 'waitingForDelay' | 'section2' | 'waitingForTap' | 
+    'section3' | 'results'
+  >('init');
+  
   const [reactionStartTime, setReactionStartTime] = useState<number | null>(null);
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
-  const [, setVideoReady] = useState(false);
+  const [, setVideoReady] = useState<{[key: string]: boolean}>({
+    section1: false,
+    section2: false, 
+    section3: false
+  });
   const [videoError, setVideoError] = useState<string | null>(null);
-  
-  // We only need showMissionBanner now - no need for white belt
   const [showMissionBanner, setShowMissionBanner] = useState(false);
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const timeUpdateHandlerRef = useRef<((e: Event) => void) | null>(null);
-
-  // Add a transitioning state to track the transition period
   const [isTransitioning, setIsTransitioning] = useState(false);
-
+  
+  // Refs for video elements and audio
+  const section1VideoRef = useRef<HTMLVideoElement>(null);
+  const section2VideoRef = useRef<HTMLVideoElement>(null);
+  const section3VideoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  
   // Add ref for the start button
   const startButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Refs for timeouts to properly clean them up
+  const randomDelayTimeoutRef = useRef<number | null>(null);
+  const resultTimeoutRef = useRef<number | null>(null);
 
-  // Preload video when component mounts
+  // Preload all videos when component mounts
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (videoElement) {
-      videoElement.preload = "auto";
+    // Setup for Section 1 video
+    const section1Video = section1VideoRef.current;
+    if (section1Video) {
+      section1Video.preload = "auto";
       
       const handleCanPlayThrough = () => {
-        setVideoReady(true);
+        setVideoReady(prev => ({ ...prev, section1: true }));
       };
       
-      const handleError = (_e: Event) => {
-        setVideoError("Failed to load video. Please try again.");
+      const handleError = () => {
+        setVideoError("Failed to load initial video. Please try again.");
       };
       
-      videoElement.addEventListener('canplaythrough', handleCanPlayThrough);
-      videoElement.addEventListener('error', handleError);
+      section1Video.addEventListener('canplaythrough', handleCanPlayThrough);
+      section1Video.addEventListener('error', handleError);
       
       // Start loading the video
-      videoElement.load();
+      section1Video.load();
       
       return () => {
-        videoElement.removeEventListener('canplaythrough', handleCanPlayThrough);
-        videoElement.removeEventListener('error', handleError);
+        section1Video.removeEventListener('canplaythrough', handleCanPlayThrough);
+        section1Video.removeEventListener('error', handleError);
       };
     }
   }, []);
 
-  // Video playback and light detection
+  // Preload Section 2 video
   useEffect(() => {
-    if (gameState === 'playingVideo' && videoRef.current) {
+    const section2Video = section2VideoRef.current;
+    if (section2Video) {
+      section2Video.preload = "auto";
       
-      // Reset video to beginning if needed
-      videoRef.current.currentTime = 0;
+      const handleCanPlayThrough = () => {
+        setVideoReady(prev => ({ ...prev, section2: true }));
+      };
+      
+      const handleError = () => {
+        setVideoError("Failed to load button video. Please try again.");
+      };
+      
+      section2Video.addEventListener('canplaythrough', handleCanPlayThrough);
+      section2Video.addEventListener('error', handleError);
+      
+      // Start loading the video
+      section2Video.load();
+      
+      return () => {
+        section2Video.removeEventListener('canplaythrough', handleCanPlayThrough);
+        section2Video.removeEventListener('error', handleError);
+      };
+    }
+  }, []);
+
+  // Preload Section 3 video
+  useEffect(() => {
+    const section3Video = section3VideoRef.current;
+    if (section3Video) {
+      section3Video.preload = "auto";
+      
+      const handleCanPlayThrough = () => {
+        setVideoReady(prev => ({ ...prev, section3: true }));
+      };
+      
+      const handleError = () => {
+        setVideoError("Failed to load result video. Please try again.");
+      };
+      
+      section3Video.addEventListener('canplaythrough', handleCanPlayThrough);
+      section3Video.addEventListener('error', handleError);
+      
+      // Start loading the video
+      section3Video.load();
+      
+      return () => {
+        section3Video.removeEventListener('canplaythrough', handleCanPlayThrough);
+        section3Video.removeEventListener('error', handleError);
+      };
+    }
+  }, []);
+
+  // Section 1 video playback handler
+  useEffect(() => {
+    if (gameState === 'section1' && section1VideoRef.current) {
+      // Reset video to beginning
+      section1VideoRef.current.currentTime = 0;
       
       // Ensure audio is enabled
-      videoRef.current.muted = false;
+      section1VideoRef.current.muted = false;
       
-      const playPromise = videoRef.current.play();
+      const playPromise = section1VideoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => console.log("Video playing successfully with sound"))
+          .then(() => console.log("Section 1 video playing successfully"))
           .catch(error => {
             // Handle autoplay restrictions
             if (error.name === "NotAllowedError") {
@@ -169,157 +240,205 @@ const RedLight: React.FC = () => {
           });
       }
 
-      // Set up timeupdate event to detect when lights turn off
-      const timeUpdateHandler = (e: Event) => {
-        const video = e.target as HTMLVideoElement;
-        // Pause at the specified time when lights turn off
-        if (video.currentTime >= 5.13) {
-          video.pause();
-          setGameState('waitingForTap');
-          setButtonActive(true);
-          setReactionStartTime(Date.now());
-          
-          // Remove the event listener once triggered
-          video.removeEventListener('timeupdate', timeUpdateHandler);
-          timeUpdateHandlerRef.current = null;
-        }
+      // Handler for when Section 1 video ends
+      const handleVideoEnded = () => {
+        console.log("Section 1 video ended, applying random delay");
+        setGameState('waitingForDelay');
+        
+        // Random delay between 0 and 1000ms before starting section 2
+        const randomDelay = Math.random() * 1000;
+        randomDelayTimeoutRef.current = window.setTimeout(() => {
+          setGameState('section2');
+        }, randomDelay);
       };
       
-      // Store the handler and add it to the video element
-      timeUpdateHandlerRef.current = timeUpdateHandler;
-      videoRef.current.addEventListener('timeupdate', timeUpdateHandler);
-    } else if (gameState === 'continuingVideo' && videoRef.current) {
-      const playPromise = videoRef.current.play();
+      section1VideoRef.current.addEventListener('ended', handleVideoEnded);
+      
+      return () => {
+        if (section1VideoRef.current) {
+          section1VideoRef.current.removeEventListener('ended', handleVideoEnded);
+        }
+      };
+    }
+  }, [gameState]);
+
+  // Section 2 video playback handler
+  useEffect(() => {
+    if (gameState === 'section2' && section2VideoRef.current) {
+      // Reset video to beginning
+      section2VideoRef.current.currentTime = 0;
+      
+      // Ensure audio is enabled
+      section2VideoRef.current.muted = false;
+      
+      // Activate button immediately when section 2 starts
+      setButtonActive(true);
+      setReactionStartTime(Date.now());
+      
+      const playPromise = section2VideoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => console.log("Video continuing successfully"))
-          .catch(_error => {
-            // Handle continuing playback error
-            setVideoError("Error resuming video. Please try again.");
+          .then(() => console.log("Section 2 video playing successfully"))
+          .catch(error => {
+            console.error("Error playing section 2 video:", error);
+            setVideoError("Error playing video. Please try again.");
             setGameState('init');
           });
       }
-    }
 
-    // Clean up event listeners when component unmounts or video changes
-    return () => {
-      if (videoRef.current && timeUpdateHandlerRef.current) {
-        videoRef.current.removeEventListener('timeupdate', timeUpdateHandlerRef.current);
+      // Handler for when Section 2 video ends
+      const handleVideoEnded = () => {
+        console.log("Section 2 video ended, waiting for tap");
+        setGameState('waitingForTap');
+      };
+      
+      section2VideoRef.current.addEventListener('ended', handleVideoEnded);
+      
+      return () => {
+        if (section2VideoRef.current) {
+          section2VideoRef.current.removeEventListener('ended', handleVideoEnded);
+        }
+      };
+    }
+  }, [gameState]);
+
+  // Section 3 video and sound playback handler
+  useEffect(() => {
+    if (gameState === 'section3') {
+      // Start playing the section 3 video
+      if (section3VideoRef.current) {
+        // Reset video to beginning
+        section3VideoRef.current.currentTime = 0;
+        
+        // Ensure audio is enabled for the video
+        section3VideoRef.current.muted = false;
+        
+        const playPromise = section3VideoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Error playing section 3 video:", error);
+          });
+        }
+        
+        // Play the sound effect
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(error => {
+            console.error("Error playing sound:", error);
+          });
+        }
+        
+        // Set timeout to stop video after 1.5 seconds and show results
+        resultTimeoutRef.current = window.setTimeout(() => {
+          if (section3VideoRef.current) {
+            section3VideoRef.current.pause();
+          }
+          setGameState('results');
+          setOpenModal(true);
+          // Note: We don't stop the sound here as it should continue playing
+        }, 1500);
       }
+      
+      return () => {
+        // Clear the timeout if the component unmounts or gameState changes
+        if (resultTimeoutRef.current !== null) {
+          clearTimeout(resultTimeoutRef.current);
+          resultTimeoutRef.current = null;
+        }
+      };
+    }
+  }, [gameState]);
+
+  // Cleanup for random delay timeout
+  useEffect(() => {
+    return () => {
+      if (randomDelayTimeoutRef.current !== null) {
+        clearTimeout(randomDelayTimeoutRef.current);
+        randomDelayTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
+  // Stop sound when user leaves the results screen
+  useEffect(() => {
+    // Function to stop audio when the custom event is fired
+    const stopAudioHandler = () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    };
+    
+    // Add event listener for the custom event
+    document.addEventListener('stopGameAudio', stopAudioHandler);
+    
+    if (gameState === 'init') {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    }
+    
+    // Clean up the event listener when component unmounts
+    return () => {
+      document.removeEventListener('stopGameAudio', stopAudioHandler);
     };
   }, [gameState]);
 
-  // Modify startGame to add a 2-second transition delay
+  // Modify startGame to show banner on top of a static video frame
   const startGame = () => {
     console.log("Start button clicked");
     
     // First set transitioning state to true
     setIsTransitioning(true);
     
-    // Add a 2-second delay before starting the video and showing mission banner
+    // Add a 2-second delay before showing mission banner
     setTimeout(() => {
-      // Set game state to playingVideo after the delay
-      setGameState('playingVideo');
-      
-      // Show mission banner on top of the playing video
-      setShowMissionBanner(true);
+      // Change the state to missionIntro
+      setGameState('missionIntro');
       
       // Reset transitioning state
       setIsTransitioning(false);
-    }, 2000); // Changed to 2 seconds delay
+      
+      // Wait a small amount of time to ensure video is ready and visible but paused
+      setTimeout(() => {
+        // Make sure video is reset to the beginning and paused
+        if (section1VideoRef.current) {
+          section1VideoRef.current.currentTime = 0;
+          section1VideoRef.current.pause();
+        }
+        
+        // Now show mission banner on top of the static video
+        setShowMissionBanner(true);
+      }, 50);
+    }, 2000);
   };
   
   // Handle mission banner animation completion
   const handleMissionBannerComplete = () => {
-    // Just hide the banner, video is already playing
+    // First hide the banner
     setShowMissionBanner(false);
+    
+    // Now start playing section 1 video
+    setGameState('section1');
   };
 
   // Handle tap button click
   const handleTapClick = () => {
-    if (gameState === 'waitingForTap' && buttonActive && reactionStartTime) {
+    if ((gameState === 'section2' || gameState === 'waitingForTap') && buttonActive && reactionStartTime) {
       const timeDiff = Date.now() - reactionStartTime;
       setReactionTime(timeDiff);
-      setGameState('continuingVideo');
       setButtonActive(false); // Disable button after click
       
-      if (videoRef.current) {
-        // Add a small timeout to ensure state updates before playing
-        setTimeout(() => {
-          if (videoRef.current) {
-            // Make sure video continues playing with audio
-            videoRef.current.muted = false; // Ensure audio is unmuted
-            const playPromise = videoRef.current.play();
-            if (playPromise !== undefined) {
-              playPromise
-                .then(() => {
-                  console.log("Video continuing successfully with sound");
-                })
-                .catch(error => {
-                  console.error("Error resuming video:", error);
-                  // If there's an error, still show the results
-                  setGameState('results');
-                  setOpenModal(true);
-                });
-            }
-          }
-        }, 50);
+      // Stop section 2 video if it's still playing
+      if (section2VideoRef.current) {
+        section2VideoRef.current.pause();
       }
+      
+      // Start section 3
+      setGameState('section3');
     }
   };
-
-  // Video ended handler - improved for reliability
-  const handleVideoEnd = () => {
-    console.log("Video ended, showing results");
-    setGameState('results');
-    // Open modal immediately
-    setOpenModal(true);
-  };
-
-  // Enhanced video effect to handle the video ending properly
-  useEffect(() => {
-    const videoElement = videoRef.current;
-    
-    if (videoElement) {
-      // Set up event listener for video ending
-      const handleVideoEnded = () => {
-        console.log("Video ended event triggered");
-        setGameState('results');
-        setOpenModal(true);
-      };
-      
-      videoElement.addEventListener('ended', handleVideoEnded);
-      
-      return () => {
-        videoElement.removeEventListener('ended', handleVideoEnded);
-      };
-    }
-  }, []);
-
-  // Modified state change side effects
-  useEffect(() => {
-    if (gameState === 'continuingVideo') {
-      // Make sure video continues to the end
-      if (videoRef.current) {
-        // Set an additional check that the video is actually playing
-        const checkVideoPlaying = setInterval(() => {
-          if (videoRef.current && videoRef.current.paused) {
-            console.log("Video appears to be paused when it should be playing, attempting to restart");
-            videoRef.current.play().catch(err => console.error("Error restarting video:", err));
-          }
-        }, 200);
-        
-        // Clear the interval after a reasonable time (video should be about 10 seconds)
-        setTimeout(() => {
-          clearInterval(checkVideoPlaying);
-        }, 10000);
-        
-        return () => {
-          clearInterval(checkVideoPlaying);
-        };
-      }
-    }
-  }, [gameState]);
 
   const handleRestartGame = () => {
     // First close the modal
@@ -343,24 +462,27 @@ const RedLight: React.FC = () => {
         startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
       }
       
-      // Reset video element if it exists
-      if (videoRef.current) {
-        videoRef.current.pause();
-        videoRef.current.currentTime = 0;
+      // Reset all video elements
+      if (section1VideoRef.current) {
+        section1VideoRef.current.pause();
+        section1VideoRef.current.currentTime = 0;
+      }
+      if (section2VideoRef.current) {
+        section2VideoRef.current.pause();
+        section2VideoRef.current.currentTime = 0;
+      }
+      if (section3VideoRef.current) {
+        section3VideoRef.current.pause();
+        section3VideoRef.current.currentTime = 0;
+      }
+      
+      // Stop the audio
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
       }
     }, 50);
   };
-
-  // Add debugging to see when these states change
-  useEffect(() => {
-    console.log("Mission Banner State:", showMissionBanner);
-  }, [showMissionBanner]);
-
-  // Ensure initial state is set correctly
-  useEffect(() => {
-    // Make absolutely sure these are false on mount
-    setShowMissionBanner(false);
-  }, []);
 
   // Create a handler to prevent default touch actions on the entire app
   const preventDefaultTouchAction = (e: TouchEvent) => {
@@ -409,6 +531,20 @@ const RedLight: React.FC = () => {
       }
     }
   }, [gameState]);
+
+  // Get current active video based on game state
+
+  // Determine which video should be visible
+  const getVideoVisibility = (videoType: 'section1' | 'section2' | 'section3') => {
+    if (videoType === 'section1') {
+      return gameState === 'missionIntro' || gameState === 'section1' || gameState === 'waitingForDelay';
+    } else if (videoType === 'section2') {
+      return gameState === 'section2' || gameState === 'waitingForTap';
+    } else if (videoType === 'section3') {
+      return gameState === 'section3' || gameState === 'results';
+    }
+    return false;
+  };
 
   return (
     <Box
@@ -595,18 +731,15 @@ const RedLight: React.FC = () => {
                       transform: gameState === 'init' ? "translateY(1px)" : "none",
                       boxShadow: gameState === 'init' ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
                     },
-                    // Reset pressed state styles with !important to override any persistent :active state
                     "&:focus": {
                       outline: "none",
                     },
-                    // Add styles to reset the button on focus-visible
                     "&:not(:focus-visible)": {
                       backgroundColor: "#f5f6fa !important",
                       transform: "none !important",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
                     }
                   }}
-                  // Add key based on timestamp to force button re-render when state changes
                   key={`start-button-${gameState === 'init' ? 'ready' : 'disabled'}-${Date.now()}`}
                 >
                   START
@@ -631,15 +764,15 @@ const RedLight: React.FC = () => {
           </Box>
         )}
 
-        {/* Mission Banner and White Belt Overlay - Only include in the DOM when they should be visible */}
+        {/* Mission Banner Overlay */}
         {showMissionBanner && <MissionBanner 
           visible={true} 
           onAnimationComplete={handleMissionBannerComplete} 
         />}
 
-        {/* Video Element */}
+        {/* Section 1 Video */}
         <video 
-          ref={videoRef}
+          ref={section1VideoRef}
           style={{
             position: "absolute",
             top: 0,
@@ -648,21 +781,105 @@ const RedLight: React.FC = () => {
             height: "100%",
             objectFit: "cover",
             zIndex: 1,
-            opacity: 1, // Always fully visible
+            opacity: getVideoVisibility('section1') ? 1 : 0,
+            display: getVideoVisibility('section1') ? "block" : "none",
             transition: "opacity 0.5s ease-in-out",
-            display: gameState === 'init' ? "none" : "block", // Show in all states except init
           }}
-          onEnded={handleVideoEnd}
           playsInline
           preload="auto"
-          onCanPlayThrough={() => setVideoReady(true)}
         >
-          <source src={SecondVideo} type="video/mp4" />
+          <source src={Section1Video} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
         
-        {/* Tap button shown during video playback */}
-        {(gameState === 'playingVideo' || gameState === 'waitingForTap' || gameState === 'continuingVideo') && (
+        {/* Tap button shown during Section 1 (inactive) and Section 2 (active) */}
+        {(gameState === 'section1' || gameState === 'waitingForDelay' || gameState === 'section2' || gameState === 'waitingForTap') && (
+          <Box
+            component="img"
+            src={TapHereButton}
+            alt="Tap Here"
+            sx={{
+              position: "absolute",
+              zIndex: 2,
+              width: "120px", // Default size
+              height: "auto",
+              cursor: buttonActive ? "pointer" : "default",
+              bottom: "18%",
+              left: "50%", // Center the button horizontally
+              transform: "translateX(-50%)", // Ensure proper centering
+              opacity: buttonActive ? 1 : 0.3, // More transparent when inactive
+              transition: "opacity 0.3s ease-in-out",
+              filter: buttonActive ? "brightness(1.1)" : "grayscale(0.7)", // Add grayscale filter when inactive
+              willChange: "opacity",
+              '@media screen and (max-width: 320px)': {
+                width: '100px',
+                bottom: '15%',
+              },
+              '@media screen and (max-height: 500px)': {
+                width: '100px',
+                bottom: '12%',
+              },
+              '@media screen and (max-height: 400px)': {
+                width: '80px',
+                bottom: '10%',
+              }
+            }}
+            onClick={buttonActive ? handleTapClick : undefined}
+          />
+        )}
+        
+        {/* Section 2 Video */}
+        <video 
+          ref={section2VideoRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 1,
+            opacity: getVideoVisibility('section2') ? 1 : 0,
+            display: getVideoVisibility('section2') ? "block" : "none",
+            transition: "opacity 0.5s ease-in-out",
+          }}
+          playsInline
+          preload="auto"
+        >
+          <source src={Section2Video} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Section 3 Video */}
+        <video 
+          ref={section3VideoRef}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: 1,
+            opacity: getVideoVisibility('section3') ? 1 : 0,
+            display: getVideoVisibility('section3') ? "block" : "none",
+            transition: "opacity 0.5s ease-in-out",
+          }}
+          playsInline
+          preload="auto"
+        >
+          <source src={Section3Video} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        
+        {/* Audio element for Section 3 sound */}
+        <audio ref={audioRef} preload="auto">
+          <source src={Section3Sound} type="audio/mpeg" />
+          Your browser does not support the audio element.
+        </audio>
+        
+        {/* Tap button shown during Section 2 */}
+        {(gameState === 'section2' || gameState === 'waitingForTap') && (
           <Box
             component="img"
             src={TapHereButton}
@@ -678,12 +895,8 @@ const RedLight: React.FC = () => {
               transform: "translateX(-50%)", // Ensure proper centering
               opacity: buttonActive ? 1 : 0.5,
               transition: "opacity 0.3s ease-in-out",
-              // Remove animation that might affect position
-              // Use a CSS filter for highlighting instead of animation that could affect position
               filter: buttonActive ? "brightness(1.1)" : "none",
-              // Prevent any transformations that might occur from animations
               willChange: "opacity",
-              // Responsive sizing for smaller screens
               '@media screen and (max-width: 320px)': {
                 width: '100px',
                 bottom: '15%',
@@ -702,7 +915,7 @@ const RedLight: React.FC = () => {
         )}
       </Box>
 
-      {/* Reaction Time Modal - Add proper touch prevention */}
+      {/* Reaction Time Modal */}
       <Modal
         open={openModal}
         reactionTime={reactionTime}
