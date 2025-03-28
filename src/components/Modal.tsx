@@ -24,6 +24,10 @@ const fontStyle = {
   fontFamily: "'MyCustomFont', sans-serif",
 }
 
+const japaneseFontStyle = {
+  fontFamily: "'JapaneseFont', sans-serif",
+}
+
 interface ModalProps {
   open: boolean
   reactionTime: number | null
@@ -415,7 +419,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   marginTop: isVerySmallScreen ? "10px" : "100px",
                   marginBottom: isVerySmallScreen ? "20px" : "70px",
                   mb: 0.5,
-                  ...fontStyle,
+                  ...japaneseFontStyle,
                 }}
               >
                 ミッションクリア
@@ -503,7 +507,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   textTransform: "none",
                   width: isVerySmallScreen ? "80%" : "60%",
                   "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
-                  ...fontStyle,
+                  ...japaneseFontStyle,
                   position: "relative",
                   "& > *": {
                     transition: "opacity 0.2s ease-in-out",
@@ -543,7 +547,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   textTransform: "none",
                   width: isVerySmallScreen ? "80%" : "60%",
                   "&:hover": { bgcolor: "rgba(120, 120, 120, 0.7)" },
-                  ...fontStyle,
+                  ...japaneseFontStyle,
                 }}
                 onClick={onRetry}
               >
@@ -625,7 +629,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h6" sx={{ mb: 2, ...fontStyle }}>
+          <Typography variant="h6" sx={{ mb: 2, ...japaneseFontStyle }}>
             スコアをシェアする
           </Typography>
 

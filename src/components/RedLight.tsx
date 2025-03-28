@@ -15,6 +15,11 @@ import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4"
 import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4"
 import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3"
 
+
+const japaneseFontStyle = {
+  fontFamily: "'JapaneseFont', sans-serif",
+}
+
 // Add MissionBanner and WhiteBelt components
 const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onAnimationComplete: () => void }) => {
   const [opacity, setOpacity] = useState(0) // Start with opacity 0
@@ -93,7 +98,7 @@ const MissionBanner = ({ visible, onAnimationComplete }: { visible: boolean; onA
           color: "black",
           fontSize: "12px",
           margin: "8px 0 0",
-          fontFamily: "'MyCustomFont', sans-serif",
+          ...japaneseFontStyle,
           textAlign: "center",
           maxWidth: "90%", // Added max-width to ensure text doesn't stretch too wide
           "@media screen and (max-height: 500px)": {
