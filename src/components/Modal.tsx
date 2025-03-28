@@ -592,7 +592,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
         BackdropProps={{
           style: {
             touchAction: "none",
-            pointerEvents: "auto", // Keep backdrop interactive but prevent actions
+            pointerEvents: "auto", // Ensure backdrop pointer events are properly set
           },
         }}
         disableRestoreFocus
