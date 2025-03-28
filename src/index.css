@@ -5,6 +5,13 @@
   font-style: normal; /* Optional: specify style */
 }
 
+@font-face {
+  font-family: 'JapaneseFont';
+  src: url('./assets/japanese.ttc') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html, body {
   height: 100%;
   width: 100%;

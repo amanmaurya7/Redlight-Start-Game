@@ -631,7 +631,7 @@ const RedLight: React.FC = () => {
             fontSize: "14px",
             margin: "5px 0 0",
             fontWeight: "normal",
-            fontFamily: "'MyCustomFont', sans-serif",
+            fontFamily: "'JapaneseFont', sans-serif",
             "@media screen and (max-height: 500px)": {
               fontSize: "12px",
               marginTop: "2px",
