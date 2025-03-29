@@ -13,7 +13,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material"
-import { Share2, Download } from "lucide-react"
+import { Share2, } from "lucide-react"
 import CloseIcon from "@mui/icons-material/Close"
 import html2canvas from "html2canvas"
 import liff from "@line/liff" // Import LIFF SDK
@@ -39,7 +39,7 @@ interface ModalProps {
 const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"))
-  const isVerySmallScreen = useMediaQuery('(max-height: 600px)')
+  const isVerySmallScreen = useMediaQuery("(max-height: 600px)")
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [scoreImageUrl, setScoreImageUrl] = useState<string | null>(null)
   const [isGeneratingImage, setIsGeneratingImage] = useState(false)
@@ -75,17 +75,42 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
     })
   }, [])
 
+  // Enhanced generateScoreCard with better cross-platform compatibility
   const generateScoreCard = useCallback(async () => {
     try {
       if (!scoreRef.current) return null
       setIsGeneratingImage(true)
+
+      // Save current scroll position
+      const scrollX = window.scrollX
+      const scrollY = window.scrollY
+
+      // Prevent any scrolling or zooming during image generation
+      document.body.style.overflow = "hidden"
+      document.documentElement.style.touchAction = "none" // Disable touch actions on html element
+
+      // Get references to the score element
       const scoreElement = scoreRef.current
       const originalTransform = scoreElement.style.transform
+      const originalPosition = scoreElement.style.position
+      const originalVisibility = scoreElement.style.visibility
+
+      // Set up the element for capture
       scoreElement.style.opacity = "1"
       scoreElement.style.transform = "none"
+      scoreElement.style.position = "absolute"
+      scoreElement.style.visibility = "visible"
+      scoreElement.style.left = "-9999px" // Keep it off-screen
+      scoreElement.style.top = "-9999px"
+
+      // Ensure iOS doesn't try to focus on the off-screen element
+      scoreElement.setAttribute("aria-hidden", "true")
+
+      // Use higher resolution for better image quality on high-DPI devices
+      const dpr = Math.min(window.devicePixelRatio * 1.5, 3) // Cap at 3x to avoid excessive memory use
 
       const options = {
-        scale: window.devicePixelRatio * 1.5,
+        scale: dpr,
         backgroundColor: null,
         logging: false,
         useCORS: true,
@@ -96,15 +121,41 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
         windowHeight: scoreElement.offsetHeight,
       }
 
+      // Generate the image
       const canvas = await html2canvas(scoreElement, options)
       const imageUrl = canvas.toDataURL("image/png", 0.9)
-      setScoreImageUrl(imageUrl)
+
+      // Restore original element state
       scoreElement.style.opacity = "0"
       scoreElement.style.transform = originalTransform
+      scoreElement.style.position = originalPosition
+      scoreElement.style.visibility = originalVisibility
+      scoreElement.removeAttribute("aria-hidden")
+
+      // Restore scroll position with a delay to ensure rendering is complete
+      setTimeout(() => {
+        window.scrollTo(scrollX, scrollY)
+
+        // Re-enable scrolling and interactions
+        document.body.style.overflow = ""
+        document.documentElement.style.touchAction = ""
+      }, 100)
+
+      setScoreImageUrl(imageUrl)
       setIsGeneratingImage(false)
       return imageUrl
     } catch (error) {
       console.error("Failed to generate score card:", error)
+
+      // Clean up even if there's an error
+      document.body.style.overflow = ""
+      document.documentElement.style.touchAction = ""
+
+      if (scoreRef.current) {
+        scoreRef.current.style.opacity = "0"
+        scoreRef.current.removeAttribute("aria-hidden")
+      }
+
       setIsGeneratingImage(false)
       return null
     }
@@ -128,7 +179,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
     }
   }
 
-  // Modified to properly clean up after sharing
+  // Update the shareScore function with better platform detection
   const shareScore = async () => {
     if (!scoreImageUrl) return
 
@@ -146,6 +197,11 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
       await navigator.clipboard.writeText(shareText)
       console.log("Share text copied to clipboard")
 
+      // Detect platforms
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isAndroid = /Android/.test(navigator.userAgent);
+      
       if (isInLiff && liff.isApiAvailable("shareTargetPicker")) {
         // LIFF environment: Share image directly
         await liff.shareTargetPicker([
@@ -158,115 +214,239 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
         console.log("Shared image directly via LIFF shareTargetPicker")
         cleanupAfterShare();
       } else {
-        // Non-LIFF environment: Use Web Share API
-        const isWebShareSupported = typeof navigator.share === "function"
-        const isAndroid = /Android/.test(navigator.userAgent)
+        // Non-LIFF environment: Try Web Share API for modern browsers
+        const isWebShareSupported = typeof navigator.share === "function";
 
         if (isWebShareSupported) {
-          const res = await fetch(scoreImageUrl)
-          const blob = await res.blob()
-          const file = new File([blob], "reaction-time-score.png", { type: "image/png" })
+          try {
+            const res = await fetch(scoreImageUrl);
+            const blob = await res.blob();
+            const file = new File([blob], "reaction-time-score.png", { type: "image/png" });
 
-          const shareData = {
-            title: shortTitle,
-            text: shareText,
-            files: [file],
-          }
+            const shareData: {
+              title: string;
+              text: string;
+              files?: File[];
+            } = {
+              title: shortTitle,
+              text: shareText,
+            };
+            
+            // Check if sharing files is supported (important for iOS)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              shareData.files = [file];
+            }
 
-          if (navigator.canShare && navigator.canShare(shareData)) {
-            await navigator.share(shareData)
-            console.log("Shared successfully with image and text via Web Share API")
+            await navigator.share(shareData);
+            console.log("Shared successfully via Web Share API");
             cleanupAfterShare();
-            return
+            return;
+          } catch (webShareError) {
+            console.error("Web Share API error:", webShareError);
+            // Fall through to platform-specific fallbacks
           }
         }
 
-        // Fallback for non-Web Share API or Android LINE deep link
+        // Platform-specific fallbacks
         if (isAndroid) {
-          const encodedText = encodeURIComponent(shareText)
-          const lineUrl = `line://msg/text/${encodedText}`
-          window.location.href = lineUrl
+          // Android LINE deep link
+          const encodedText = encodeURIComponent(shareText);
+          const lineUrl = `line://msg/text/${encodedText}`;
+          window.location.href = lineUrl;
+          
+          // If we're still here after a delay, the LINE app might not be installed
           setTimeout(() => {
             if (document.hasFocus()) {
-              downloadImage()
+              downloadImage();
             }
             cleanupAfterShare();
-          }, 1500)
-          return
+          }, 1500);
+          return;
+        } else if (isIOS) {
+          // iOS might need special handling for LINE
+          try {
+            const lineIOSUrl = `line://msg/text/${encodeURIComponent(shareText)}`;
+            window.location.href = lineIOSUrl;
+            
+            setTimeout(() => {
+              if (document.hasFocus()) {
+                downloadImage();
+              }
+              cleanupAfterShare();
+            }, 1500);
+            return;
+          } catch (iosError) {
+            console.error("iOS sharing error:", iosError);
+            downloadImage();
+            cleanupAfterShare();
+          }
+        } else {
+          // Desktop or other platforms
+          downloadImage();
+          cleanupAfterShare();
         }
-
-        downloadImage()
-        alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
-        cleanupAfterShare();
       }
     } catch (error) {
       console.error("Error in sharing process:", error)
       downloadImage()
-      cleanupAfterShare();
+      cleanupAfterShare()
     }
   }
 
-  // New helper function to clean up after sharing or downloading
-  const cleanupAfterShare = () => {
-    setShareModalOpen(false);
-    // Cleanup the score element to prevent zooming issues
-    setShouldRenderScoreElement(false);
-    
-    // Small delay before cleanup to ensure UI has time to update
+// Improved cleanup function with iOS/Android specific handling
+const cleanupAfterShare = () => {
+  setShareModalOpen(false)
+  setShouldRenderScoreElement(false)
+
+  // Restore normal page behavior
+  document.body.style.overflow = ""
+  document.documentElement.style.touchAction = ""
+
+  if (scoreRef.current) {
+    scoreRef.current.style.opacity = "0"
+    scoreRef.current.style.transform = "none"
+    scoreRef.current.style.position = "absolute"
+    scoreRef.current.style.pointerEvents = "none"
+    scoreRef.current.style.visibility = "hidden"
+    scoreRef.current.setAttribute("aria-hidden", "true")
+  }
+
+  // Detect iOS
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+
+  // On iOS, we need a more aggressive approach to prevent zooming
+  if (isIOS) {
+    // Force viewport reset to prevent iOS zoom
+    const viewport = document.querySelector('meta[name="viewport"]')
+    if (viewport) {
+      const originalContent = viewport.getAttribute("content")
+      if (originalContent) {
+        viewport.setAttribute("content", originalContent + ",maximum-scale=1")
+        setTimeout(() => {
+          viewport.setAttribute("content", originalContent)
+        }, 300)
+      }
+    }
+
+    // Reset scroll position after a delay
     setTimeout(() => {
-      if (scoreRef.current) {
-        scoreRef.current.style.opacity = "0";
-        scoreRef.current.style.transform = "none";
-      }
-    }, 100);
+      window.scrollTo(0, 0)
+    }, 100)
+  } else {
+    // For Android and other platforms
+    setTimeout(() => {
+      window.scrollTo(0, 0)
+    }, 100)
   }
+}
 
-  const downloadImage = async () => {
-    if (!scoreImageUrl) return
-    try {
-      const downloadLink = document.createElement("a")
-      downloadLink.href = scoreImageUrl
-      downloadLink.download = "reaction-time-score.png"
-      document.body.appendChild(downloadLink)
-      downloadLink.click()
-      document.body.removeChild(downloadLink)
-      
-      // Clean up after download
-      cleanupAfterShare();
-    } catch (downloadError) {
-      console.error("Download failed:", downloadError)
-      alert("画像のダウンロードに失敗しました。")
-      cleanupAfterShare();
+// Improved downloadImage function to ensure modal closes properly on all devices
+// Improved downloadImage function with LIFF-specific download attempt
+const downloadImage = async () => {
+  if (!scoreImageUrl) return;
+
+  try {
+    setShareModalOpen(false); // Close the modal first
+    await new Promise((resolve) => setTimeout(resolve, 50)); // Allow modal animation to complete
+
+    // Fetch the image as a Blob
+    const response = await fetch(scoreImageUrl);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+
+    if (isInLiff && liff.isInClient()) {
+      // Attempt to trigger download in LIFF
+      const downloadLink = document.createElement("a");
+      downloadLink.href = blobUrl;
+      downloadLink.download = "reaction-time-score.png";
+      document.body.appendChild(downloadLink);
+
+      // Try to programmatically trigger the download
+      downloadLink.click();
+
+      // Delay to check if the download worked (LINE might block this)
+      setTimeout(() => {
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(blobUrl);
+
+        // Fallback: If the download doesn't start, prompt the user
+        if (document.hasFocus()) {
+          // Assume download failed if the page still has focus
+          alert(
+
+          );
+          // Optionally trigger share as a backup
+          if (liff.isApiAvailable("shareTargetPicker")) {
+            liff.shareTargetPicker([
+              {
+                type: "image",
+                originalContentUrl: scoreImageUrl,
+                previewImageUrl: scoreImageUrl,
+              },
+            ]);
+          }
+        }
+        cleanupAfterShare();
+      }, 1000); // Wait 1 second to detect if download succeeded
+    } else {
+      // Non-LIFF environment (e.g., Vercel): Standard download
+      const downloadLink = document.createElement("a");
+      downloadLink.href = blobUrl;
+      downloadLink.download = "reaction-time-score.png";
+      document.body.appendChild(downloadLink);
+
+      setTimeout(() => {
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+        window.URL.revokeObjectURL(blobUrl);
+        cleanupAfterShare();
+      }, 100);
+    }
+  } catch (downloadError) {
+    console.error("Download failed:", downloadError);
+    alert(
+    );
+    if (isInLiff && liff.isApiAvailable("shareTargetPicker")) {
+      liff.shareTargetPicker([
+        {
+          type: "image",
+          originalContentUrl: scoreImageUrl,
+          previewImageUrl: scoreImageUrl,
+        },
+      ]);
+    }
+    cleanupAfterShare();
+  }
+};
+
+// Add a listener to reset the score element when modal closes
+useEffect(() => {
+  if (!open) {
+    setShouldRenderScoreElement(false)
+    setScoreImageUrl(null)
+    setShareModalOpen(false)
+
+    // Ensure any lingering score elements are cleaned up
+    if (scoreRef.current) {
+      scoreRef.current.style.opacity = "0"
+      scoreRef.current.style.transform = "none"
     }
   }
+}, [open])
 
-  // Add a listener to reset the score element when modal closes
-  useEffect(() => {
-    if (!open) {
-      setShouldRenderScoreElement(false);
-      setScoreImageUrl(null);
-      setShareModalOpen(false);
-      
-      // Ensure any lingering score elements are cleaned up
-      if (scoreRef.current) {
-        scoreRef.current.style.opacity = "0";
-        scoreRef.current.style.transform = "none";
-      }
-    }
-  }, [open]);
+// Add a new function to handle navigation away from result screen
+const handleCircuitJourneyClick = () => {
+  // Custom event to signal audio should be stopped
+  const stopAudioEvent = new CustomEvent("stopGameAudio")
+  document.dispatchEvent(stopAudioEvent)
 
-  // Add a new function to handle navigation away from result screen
-  const handleCircuitJourneyClick = () => {
-    // Custom event to signal audio should be stopped
-    const stopAudioEvent = new CustomEvent('stopGameAudio');
-    document.dispatchEvent(stopAudioEvent);
-    
-    // Navigate to the circuit journey page
-    window.location.href = "https://new-jp-map.vercel.app/";
-  };
+  // Navigate to the circuit journey page
+  window.location.href = "https://new-jp-map.vercel.app/"
+}
 
-  // Rest of the component (UI) remains unchanged
-  return (
+// Rest of the component (UI) remains unchanged
+return (
     <>
       <MuiModal
         open={open}
@@ -375,14 +555,19 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                   alignItems: "center",
                   justifyContent: "center",
                   padding: 4,
-                  position: "fixed",
+                  position: "absolute", // Changed from fixed to absolute
                   left: "-9999px",
                   top: "-9999px",
                   pointerEvents: "none",
+                  userSelect: "none",
+                  touchAction: "none",
                   opacity: 0,
                   zIndex: -999,
+                  visibility: "hidden", // Add explicit visibility control
                   ...fontStyle,
                 }}
+                aria-hidden="true" // Ensure screen readers ignore this
+                tabIndex={-1} // Prevent focus
               >
                 <Typography
                   variant="h4"
@@ -682,7 +867,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             />
           )}
 
-          <Box sx={{ display: "flex", justifyContent: "space-around", width: "100%" }}>
+          <Box sx={{ display: "flex", justifyContent: "center", width: "100%" }}>
             <Box
               sx={{
                 display: "flex",
@@ -691,53 +876,28 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
                 cursor: "pointer",
                 p: 1,
               }}
-              onClick={shareScore}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                shareScore();
+              }}
             >
-              <Box
+                <Box
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: 60,
+                  height: 60,
                   borderRadius: "50%",
-                  bgcolor: "#333",
+                  bgcolor: "primary.main",
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
                   mb: 0.5,
+                  filter: "drop-shadow(0 0 4px rgba(25, 118, 210, 0.5))",
                 }}
-              >
+                >
                 <Share2 size={24} color="white" />
-              </Box>
+                </Box>
               <Typography variant="caption" sx={{ ...fontStyle }}>
                 Share
-              </Typography>
-            </Box>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                cursor: "pointer",
-                p: 1,
-              }}
-              onClick={downloadImage}
-            >
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  bgcolor: "#333",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  mb: 0.5,
-                }}
-              >
-                <Download size={24} color="white" />
-              </Box>
-              <Typography variant="caption" sx={{ ...fontStyle }}>
-                Save
               </Typography>
             </Box>
           </Box>
@@ -748,3 +908,5 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
 }
 
 export default Modal
+
+// Remove these redundant function declarations as they're already defined within the component
