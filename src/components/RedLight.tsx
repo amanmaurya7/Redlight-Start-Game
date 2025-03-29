@@ -866,7 +866,6 @@ const RedLight: React.FC = () => {
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              background: "linear-gradient(to bottom, #ff6b6b 0%, #c23616 50%, #192a56 100%)",
               fontFamily: "'MyCustomFont', sans-serif",
               // Force repaint when transitioning back to init state
               key: `background-${cacheBustTimestamp.current}`,
