@@ -15,6 +15,12 @@ import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4"
 import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4"
 import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3"
 
+// Preload background image to ensure it's cached
+const preloadBackgroundImage = () => {
+  const img = new Image();
+  img.src = Svg7;
+  return img;
+};
 
 const japaneseFontStyle = {
   fontFamily: "'JapaneseFont', sans-serif",
@@ -154,33 +160,125 @@ const RedLight: React.FC = () => {
   const randomDelayTimeoutRef = useRef<number | null>(null)
   const resultTimeoutRef = useRef<number | null>(null)
 
-  // Preload all videos when component mounts
+  // Add ref for the background image
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
+  const componentMountedRef = useRef(true);
+
+  // Initialize and preload background image when component mounts
   useEffect(() => {
-    // Setup for Section 1 video
-    const section1Video = section1VideoRef.current
-    if (section1Video) {
-      section1Video.preload = "auto"
+    componentMountedRef.current = true;
+    backgroundImageRef.current = preloadBackgroundImage();
+    
+    // Refresh the background image when entering the screen
+    if (gameState === "init") {
+      backgroundImageRef.current = preloadBackgroundImage();
+    }
+    
+    return () => {
+      componentMountedRef.current = false;
+    };
+  }, []);
 
-      const handleCanPlayThrough = () => {
-        setVideoReady((prev) => ({ ...prev, section1: true }))
+  // Ensure background is reloaded when returning to init state
+  useEffect(() => {
+    if (gameState === "init") {
+      // Reload the background image
+      backgroundImageRef.current = preloadBackgroundImage();
+    }
+  }, [gameState]);
+
+  // Add robust cleanup for all video elements
+  useEffect(() => {
+    return () => {
+      // Cleanup function that runs when component unmounts
+      if (section1VideoRef.current) {
+        section1VideoRef.current.pause();
+        section1VideoRef.current.src = "";
+        section1VideoRef.current.load();
       }
-
-      const handleError = () => {
-        setVideoError("Failed to load initial video. Please try again.")
+      if (section2VideoRef.current) {
+        section2VideoRef.current.pause();
+        section2VideoRef.current.src = "";
+        section2VideoRef.current.load();
       }
+      if (section3VideoRef.current) {
+        section3VideoRef.current.pause();
+        section3VideoRef.current.src = "";
+        section3VideoRef.current.load();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current.load();
+      }
+      
+      // Clear any pending timeouts
+      if (randomDelayTimeoutRef.current !== null) {
+        clearTimeout(randomDelayTimeoutRef.current);
+      }
+      if (resultTimeoutRef.current !== null) {
+        clearTimeout(resultTimeoutRef.current);
+      }
+    };
+  }, []);
 
-      section1Video.addEventListener("canplaythrough", handleCanPlayThrough)
-      section1Video.addEventListener("error", handleError)
-
-      // Start loading the video
-      section1Video.load()
-
-      return () => {
-        section1Video.removeEventListener("canplaythrough", handleCanPlayThrough)
-        section1Video.removeEventListener("error", handleError)
+  // Preload all videos when component mounts or when returning to init state
+  useEffect(() => {
+    if (gameState === "init") {
+      // Reset video elements
+      if (section1VideoRef.current) {
+        section1VideoRef.current.src = Section1Video;
+        section1VideoRef.current.load();
+      }
+      if (section2VideoRef.current) {
+        section2VideoRef.current.src = Section2Video;
+        section2VideoRef.current.load();
+      }
+      if (section3VideoRef.current) {
+        section3VideoRef.current.src = Section3Video;
+        section3VideoRef.current.load();
+      }
+      if (audioRef.current) {
+        audioRef.current.src = Section3Sound;
+        audioRef.current.load();
       }
     }
-  }, [])
+  }, [gameState]);
+
+  // Setup for Section 1 video - modified to use the gameState as a dependency
+  useEffect(() => {
+    if (gameState === "init") {
+      // Setup for Section 1 video
+      const section1Video = section1VideoRef.current
+      if (section1Video) {
+        section1Video.preload = "auto"
+        section1Video.src = Section1Video;
+
+        const handleCanPlayThrough = () => {
+          if (componentMountedRef.current) {
+            setVideoReady((prev) => ({ ...prev, section1: true }))
+          }
+        }
+
+        const handleError = () => {
+          if (componentMountedRef.current) {
+            setVideoError("Failed to load initial video. Please try again.")
+          }
+        }
+
+        section1Video.addEventListener("canplaythrough", handleCanPlayThrough)
+        section1Video.addEventListener("error", handleError)
+
+        // Start loading the video
+        section1Video.load()
+
+        return () => {
+          section1Video.removeEventListener("canplaythrough", handleCanPlayThrough)
+          section1Video.removeEventListener("error", handleError)
+        }
+      }
+    }
+  }, [gameState])
 
   // Preload Section 2 video
   useEffect(() => {
@@ -480,25 +578,36 @@ const RedLight: React.FC = () => {
         startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)"
       }
 
-      // Reset all video elements
+      // Reset and reload all video elements
       if (section1VideoRef.current) {
         section1VideoRef.current.pause()
         section1VideoRef.current.currentTime = 0
+        section1VideoRef.current.src = Section1Video
+        section1VideoRef.current.load()
       }
       if (section2VideoRef.current) {
         section2VideoRef.current.pause()
         section2VideoRef.current.currentTime = 0
+        section2VideoRef.current.src = Section2Video
+        section2VideoRef.current.load()
       }
       if (section3VideoRef.current) {
         section3VideoRef.current.pause()
         section3VideoRef.current.currentTime = 0
+        section3VideoRef.current.src = Section3Video
+        section3VideoRef.current.load()
       }
 
-      // Stop the audio
+      // Stop and reload the audio
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current.currentTime = 0
+        audioRef.current.src = Section3Sound
+        audioRef.current.load()
       }
+      
+      // Reload background image
+      backgroundImageRef.current = preloadBackgroundImage();
     }, 50)
   }
 
@@ -682,6 +791,8 @@ const RedLight: React.FC = () => {
               justifyContent: "center",
               background: "linear-gradient(to bottom, #ff6b6b 0%, #c23616 50%, #192a56 100%)",
               fontFamily: "'MyCustomFont', sans-serif",
+              // Force repaint when transitioning back to init state
+              key: `background-${gameState === "init" ? Date.now() : "transitioning"}`,
             }}
           >
             <Box
@@ -698,6 +809,8 @@ const RedLight: React.FC = () => {
                 transform: "translate(-50%, -50%)",
                 zIndex: 2,
               }}
+              // Force reload of image when component is remounted
+              key={`background-image-${gameState === "init" ? Date.now() : "static"}`}
             />
 
             {/* Start Button or Loading Indicator */}
