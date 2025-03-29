@@ -128,6 +128,7 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
     }
   }
 
+  // Modified to properly clean up after sharing
   const shareScore = async () => {
     if (!scoreImageUrl) return
 
@@ -155,7 +156,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           },
         ])
         console.log("Shared image directly via LIFF shareTargetPicker")
-        setShareModalOpen(false)
+        cleanupAfterShare();
       } else {
         // Non-LIFF environment: Use Web Share API
         const isWebShareSupported = typeof navigator.share === "function"
@@ -175,8 +176,7 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
           if (navigator.canShare && navigator.canShare(shareData)) {
             await navigator.share(shareData)
             console.log("Shared successfully with image and text via Web Share API")
-           
-            setShareModalOpen(false)
+            cleanupAfterShare();
             return
           }
         }
@@ -190,20 +190,35 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
             if (document.hasFocus()) {
               downloadImage()
             }
-            setShareModalOpen(false)
+            cleanupAfterShare();
           }, 1500)
           return
         }
 
         downloadImage()
         alert("画像をダウンロードしました。シェアするテキストはクリップボードにコピーされています。")
-        setShareModalOpen(false)
+        cleanupAfterShare();
       }
     } catch (error) {
       console.error("Error in sharing process:", error)
       downloadImage()
-      setShareModalOpen(false)
+      cleanupAfterShare();
     }
+  }
+
+  // New helper function to clean up after sharing or downloading
+  const cleanupAfterShare = () => {
+    setShareModalOpen(false);
+    // Cleanup the score element to prevent zooming issues
+    setShouldRenderScoreElement(false);
+    
+    // Small delay before cleanup to ensure UI has time to update
+    setTimeout(() => {
+      if (scoreRef.current) {
+        scoreRef.current.style.opacity = "0";
+        scoreRef.current.style.transform = "none";
+      }
+    }, 100);
   }
 
   const downloadImage = async () => {
@@ -215,11 +230,30 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
+      
+      // Clean up after download
+      cleanupAfterShare();
     } catch (downloadError) {
       console.error("Download failed:", downloadError)
       alert("画像のダウンロードに失敗しました。")
+      cleanupAfterShare();
     }
   }
+
+  // Add a listener to reset the score element when modal closes
+  useEffect(() => {
+    if (!open) {
+      setShouldRenderScoreElement(false);
+      setScoreImageUrl(null);
+      setShareModalOpen(false);
+      
+      // Ensure any lingering score elements are cleaned up
+      if (scoreRef.current) {
+        scoreRef.current.style.opacity = "0";
+        scoreRef.current.style.transform = "none";
+      }
+    }
+  }, [open]);
 
   // Add a new function to handle navigation away from result screen
   const handleCircuitJourneyClick = () => {
