@@ -17,8 +17,10 @@ import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3"
 
 // Preload background image to ensure it's cached
 const preloadBackgroundImage = () => {
+  // Add timestamp to prevent caching
+  const timestamp = new Date().getTime();
   const img = new Image();
-  img.src = Svg7;
+  img.src = `${Svg7}?t=${timestamp}`;
   return img;
 };
 
@@ -164,28 +166,99 @@ const RedLight: React.FC = () => {
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const componentMountedRef = useRef(true);
 
+  // Add state to track if this is a return visit
+  const [isReturnVisit, setIsReturnVisit] = useState(false);
+  
+  // Add timestamp for cache busting
+  const cacheBustTimestamp = useRef(Date.now());
+
   // Initialize and preload background image when component mounts
+  // Also check for return visits
   useEffect(() => {
     componentMountedRef.current = true;
+    
+    // Check if this is a return visit using sessionStorage
+    const hasVisitedBefore = sessionStorage.getItem('hasVisitedGame');
+    if (hasVisitedBefore === 'true') {
+      setIsReturnVisit(true);
+      // Update timestamp for fresh cache-busting
+      cacheBustTimestamp.current = Date.now();
+    } else {
+      sessionStorage.setItem('hasVisitedGame', 'true');
+    }
+    
+    // Preload the background image with cache-busting
     backgroundImageRef.current = preloadBackgroundImage();
     
-    // Refresh the background image when entering the screen
-    if (gameState === "init") {
-      backgroundImageRef.current = preloadBackgroundImage();
-    }
+    // Add pageshow event listener to detect when page is shown after
+    // navigating through browser history (like using back button)
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        // Page was restored from browser cache
+        // Force a reload of the background image
+        cacheBustTimestamp.current = Date.now();
+        backgroundImageRef.current = preloadBackgroundImage();
+        
+        // For particularly stubborn browsers, force a repaint
+        if (document.getElementById('game-container')) {
+          const container = document.getElementById('game-container');
+          if (container) {
+            container.style.display = 'none';
+            setTimeout(() => {
+              container.style.display = 'flex';
+            }, 10);
+          }
+        }
+      }
+    };
+    
+    window.addEventListener('pageshow', handlePageShow);
     
     return () => {
       componentMountedRef.current = false;
+      window.removeEventListener('pageshow', handlePageShow);
     };
   }, []);
 
   // Ensure background is reloaded when returning to init state
   useEffect(() => {
     if (gameState === "init") {
-      // Reload the background image
+      // Reload the background image with fresh timestamp
+      cacheBustTimestamp.current = Date.now();
       backgroundImageRef.current = preloadBackgroundImage();
+      
+      // Clear any previous failures
+      setVideoError(null);
     }
   }, [gameState]);
+
+  // Force background reload if this is a return visit
+  useEffect(() => {
+    if (isReturnVisit && gameState === "init") {
+      // Force immediate reload of background
+      const forceReload = () => {
+        cacheBustTimestamp.current = Date.now();
+        backgroundImageRef.current = preloadBackgroundImage();
+        
+        // Reset the page container to force repaint
+        const gameContainer = document.querySelector('.game-root-container');
+        if (gameContainer) {
+          const display = (gameContainer as HTMLElement).style.display;
+          (gameContainer as HTMLElement).style.display = 'none';
+          
+          // Trigger browser reflow
+          void (gameContainer as HTMLElement).offsetHeight;
+          
+          (gameContainer as HTMLElement).style.display = display;
+        }
+      };
+      
+      forceReload();
+      
+      // Clear the return visit flag
+      setIsReturnVisit(false);
+    }
+  }, [isReturnVisit, gameState]);
 
   // Add robust cleanup for all video elements
   useEffect(() => {
@@ -578,35 +651,37 @@ const RedLight: React.FC = () => {
         startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)"
       }
 
-      // Reset and reload all video elements
+      // Reset and reload all video elements with cache busting timestamp
+      const timestamp = Date.now();
       if (section1VideoRef.current) {
         section1VideoRef.current.pause()
         section1VideoRef.current.currentTime = 0
-        section1VideoRef.current.src = Section1Video
+        section1VideoRef.current.src = `${Section1Video}?t=${timestamp}`
         section1VideoRef.current.load()
       }
       if (section2VideoRef.current) {
         section2VideoRef.current.pause()
         section2VideoRef.current.currentTime = 0
-        section2VideoRef.current.src = Section2Video
+        section2VideoRef.current.src = `${Section2Video}?t=${timestamp}`
         section2VideoRef.current.load()
       }
       if (section3VideoRef.current) {
         section3VideoRef.current.pause()
         section3VideoRef.current.currentTime = 0
-        section3VideoRef.current.src = Section3Video
+        section3VideoRef.current.src = `${Section3Video}?t=${timestamp}`
         section3VideoRef.current.load()
       }
 
-      // Stop and reload the audio
+      // Stop and reload the audio with cache busting
       if (audioRef.current) {
         audioRef.current.pause()
         audioRef.current.currentTime = 0
-        audioRef.current.src = Section3Sound
+        audioRef.current.src = `${Section3Sound}?t=${timestamp}`
         audioRef.current.load()
       }
       
-      // Reload background image
+      // Update timestamp and reload background image
+      cacheBustTimestamp.current = timestamp;
       backgroundImageRef.current = preloadBackgroundImage();
     }, 50)
   }
@@ -677,6 +752,8 @@ const RedLight: React.FC = () => {
 
   return (
     <Box
+      className="game-root-container"
+      id="game-container"
       sx={{
         width: "100%",
         height: "100vh",
@@ -792,12 +869,12 @@ const RedLight: React.FC = () => {
               background: "linear-gradient(to bottom, #ff6b6b 0%, #c23616 50%, #192a56 100%)",
               fontFamily: "'MyCustomFont', sans-serif",
               // Force repaint when transitioning back to init state
-              key: `background-${gameState === "init" ? Date.now() : "transitioning"}`,
+              key: `background-${cacheBustTimestamp.current}`,
             }}
           >
             <Box
               component="img"
-              src={Svg7}
+              src={`${Svg7}?t=${cacheBustTimestamp.current}`}
               alt="F1 Car"
               sx={{
                 height: "100%",
@@ -809,8 +886,8 @@ const RedLight: React.FC = () => {
                 transform: "translate(-50%, -50%)",
                 zIndex: 2,
               }}
-              // Force reload of image when component is remounted
-              key={`background-image-${gameState === "init" ? Date.now() : "static"}`}
+              // Force reload of image with timestamp to prevent caching
+              key={`background-image-${cacheBustTimestamp.current}`}
             />
 
             {/* Start Button or Loading Indicator */}
@@ -905,7 +982,7 @@ const RedLight: React.FC = () => {
         {/* Mission Banner Overlay */}
         {showMissionBanner && <MissionBanner visible={true} onAnimationComplete={handleMissionBannerComplete} />}
 
-        {/* Section 1 Video */}
+        {/* Section 1 Video - Add cache busting parameter */}
         <video
           ref={section1VideoRef}
           style={{
@@ -922,8 +999,9 @@ const RedLight: React.FC = () => {
           }}
           playsInline
           preload="auto"
+          key={`video1-${cacheBustTimestamp.current}`}
         >
-          <source src={Section1Video} type="video/mp4" />
+          <source src={`${Section1Video}?t=${cacheBustTimestamp.current}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
@@ -966,7 +1044,7 @@ const RedLight: React.FC = () => {
           />
         )}
 
-        {/* Section 2 Video */}
+        {/* Section 2 Video - Add cache busting parameter */}
         <video
           ref={section2VideoRef}
           style={{
@@ -983,12 +1061,13 @@ const RedLight: React.FC = () => {
           }}
           playsInline
           preload="auto"
+          key={`video2-${cacheBustTimestamp.current}`}
         >
-          <source src={Section2Video} type="video/mp4" />
+          <source src={`${Section2Video}?t=${cacheBustTimestamp.current}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
-        {/* Section 3 Video */}
+        {/* Section 3 Video - Add cache busting parameter */}
         <video
           ref={section3VideoRef}
           style={{
@@ -1005,14 +1084,15 @@ const RedLight: React.FC = () => {
           }}
           playsInline
           preload="auto"
+          key={`video3-${cacheBustTimestamp.current}`}
         >
-          <source src={Section3Video} type="video/mp4" />
+          <source src={`${Section3Video}?t=${cacheBustTimestamp.current}`} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
 
-        {/* Audio element for Section 3 sound */}
-        <audio ref={audioRef} preload="auto">
-          <source src={Section3Sound} type="audio/mpeg" />
+        {/* Audio element for Section 3 sound - Add cache busting parameter */}
+        <audio ref={audioRef} preload="auto" key={`audio-${cacheBustTimestamp.current}`}>
+          <source src={`${Section3Sound}?t=${cacheBustTimestamp.current}`} type="audio/mpeg" />
           Your browser does not support the audio element.
         </audio>
 
