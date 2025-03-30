@@ -434,8 +434,8 @@ const RedLight: React.FC = () => {
         console.log("Section 1 video ended, applying random delay")
         setGameState("waitingForDelay")
 
-        // Random delay between 0 and 1000ms before starting section 2
-        const randomDelay = Math.random() * 1000
+        // Random delay between 0.2 and 3 seconds before starting section 2
+        const randomDelay = 200 + Math.random() * 2800
         randomDelayTimeoutRef.current = window.setTimeout(() => {
           setGameState("section2")
         }, randomDelay)
