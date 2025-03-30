@@ -578,29 +578,20 @@ const RedLight: React.FC = () => {
   const startGame = () => {
     console.log("Start button clicked")
 
-    // First set transitioning state to true
-    setIsTransitioning(true)
+    // Change the state to missionIntro immediately without transition
+    setGameState("missionIntro")
 
-    // Add a 2-second delay before showing mission banner
+    // Wait a small amount of time to ensure video is ready and visible but paused
     setTimeout(() => {
-      // Change the state to missionIntro
-      setGameState("missionIntro")
+      // Make sure video is reset to the beginning and paused
+      if (section1VideoRef.current) {
+        section1VideoRef.current.currentTime = 0
+        section1VideoRef.current.pause()
+      }
 
-      // Reset transitioning state
-      setIsTransitioning(false)
-
-      // Wait a small amount of time to ensure video is ready and visible but paused
-      setTimeout(() => {
-        // Make sure video is reset to the beginning and paused
-        if (section1VideoRef.current) {
-          section1VideoRef.current.currentTime = 0
-          section1VideoRef.current.pause()
-        }
-
-        // Now show mission banner on top of the static video
-        setShowMissionBanner(true)
-      }, 50)
-    }, 2000)
+      // Now show mission banner on top of the static video
+      setShowMissionBanner(true)
+    }, 50)
   }
 
   // Handle mission banner animation completion
@@ -788,7 +779,7 @@ const RedLight: React.FC = () => {
           zIndex: 1, // Lower z-index so header appears above
         }}
       >
-        {/* Initial screen - with fade-out animation when state changes */}
+        {/* Initial screen - with no transition animation when state changes */}
         {(gameState === "init" || gameState === "starting" || gameState === "loading" || isTransitioning) && (
           <Box
             sx={{
@@ -798,8 +789,7 @@ const RedLight: React.FC = () => {
               width: "100%",
               height: "100%",
               zIndex: isTransitioning ? 3 : 1, // Higher z-index during transition
-              opacity: isTransitioning ? 0 : 1, // Fade out during transition
-              transition: "opacity 2s ease-in-out", // Update to 2 seconds to match
+              opacity: 1, // No fade-out effect
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
@@ -837,8 +827,7 @@ const RedLight: React.FC = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 zIndex: 4,
-                opacity: isTransitioning ? 0 : 1, // Fade out during transition
-                transition: "opacity 2s ease-in-out", // Update to 2 seconds to match
+                opacity: 1, // No fade-out effect
                 fontFamily: "'MyCustomFont', sans-serif",
               }}
             >
