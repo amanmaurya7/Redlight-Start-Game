@@ -184,9 +184,9 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
     if (!scoreImageUrl) return
 
     const shareText = `#リアクションタイムテスト に挑戦！
-  結果はこちら！あなたの反応速度はどれくらい？:レーシングカー::ダッシュ:
+  結果はこちら！あなたの反応速度はどれくらい？
   ${reactionTime !== null ? `${(reactionTime / 1000).toFixed(3)}s` : "--"}
-  "F1 Japanese GP" LINE公式アカウントを友だち追加して、今すぐチャレンジ！:下向き指差し:
+  "F1 Japanese GP" LINE公式アカウントを友だち追加して、今すぐチャレンジ！
   https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
   #F1jp #F1日本グランプリ`
 

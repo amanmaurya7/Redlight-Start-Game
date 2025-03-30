@@ -779,38 +779,33 @@ const RedLight: React.FC = () => {
           left: 0,
           right: 0,
           background: "white",
-          padding: "10px 0",
-          borderRadius: "0 0 20px 20px",
+          padding: 0,
+          borderRadius: "0 0 24px 24px", // Rounded corners at bottom (3xl in tailwind is ~24px)
           textAlign: "center",
-          boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-          zIndex: 1000, // Increased to match bottom nav z-index for consistency
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // shadow-xl equivalent
+          zIndex: 1000,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          height: "70px",
+          height: "100px", // Match the exact height from EventMapHeader
           fontFamily: "'MyCustomFont', sans-serif",
-          "@media screen and (max-height: 500px)": {
-            height: "50px",
-            padding: "5px 0",
-          },
+          transition: "all 1000ms ease-in-out", // Match duration-1000 ease-in-out
         }}
       >
         <Box
           component="h1"
           sx={{
-            color: "black",
-            fontSize: "18px",
-            margin: 0,
-            letterSpacing: "1px",
-            fontWeight: "normal",
-            fontFamily: "'MyCustomFont', sans-serif",
-            "@media screen and (max-height: 500px)": {
-              fontSize: "16px",
-            },
-            "& .highlight-red": {
-              color: "red",
-            },
+        color: "black",
+        fontSize: "1.6rem", // Match the text-[1.6rem]
+        margin: 0,
+        letterSpacing: "1px",
+        fontWeight: "bold", // Changed from normal to bold
+        fontFamily: "'MyCustomFont', sans-serif",
+        "& .highlight-red": {
+          color: "#ff0000", // Exact hex color from the example
+          fontWeight: 900, // Extra bold for highlighted characters
+        },
           }}
         >
           <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
@@ -818,23 +813,19 @@ const RedLight: React.FC = () => {
         <Box
           component="h2"
           sx={{
-            color: "black",
-            fontSize: "14px",
-            margin: "5px 0 0",
-            fontWeight: "normal",
-            fontFamily: "'JapaneseFont', sans-serif",
-            "@media screen and (max-height: 500px)": {
-              fontSize: "12px",
-              marginTop: "2px",
-            },
-            "@media screen and (max-height: 400px)": {
-              display: "none",
-            },
+        color: "black",
+        fontSize: "12px", // Match text-[12px]
+        margin: "0 0 5px 0", // Adjust bottom margin to match mb-5
+        fontWeight: 800, // Increased from bold to extra-bold
+        fontFamily: "'JapaneseFont', sans-serif", // Equivalent to font-[JPFonts]
           }}
         >
           リアクションタイムテスト
         </Box>
       </Box>
+
+      {/* Spacer div to prevent content from being hidden under the fixed header */}
+      <Box sx={{ height: "65px", width: "100%" }} />
 
       {/* Game Content Container */}
       <Box
