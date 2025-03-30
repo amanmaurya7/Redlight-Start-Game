@@ -788,7 +788,7 @@ const RedLight: React.FC = () => {
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          height: "100px", // Match the exact height from EventMapHeader
+          height: "65px", // Match the exact height from EventMapHeader
           fontFamily: "'MyCustomFont', sans-serif",
           transition: "all 1000ms ease-in-out", // Match duration-1000 ease-in-out
         }}

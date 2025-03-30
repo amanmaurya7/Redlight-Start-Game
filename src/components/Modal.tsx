@@ -163,6 +163,18 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
 
   const handleShareClick = async () => {
     setIsGeneratingImage(true)
+    
+    // First, ensure any previous score element is properly reset
+    if (scoreRef.current) {
+      scoreRef.current.style.opacity = "0"
+      scoreRef.current.style.transform = "none"
+      scoreRef.current.style.position = "absolute"
+      scoreRef.current.style.visibility = "hidden"
+      scoreRef.current.style.left = "-9999px"
+      scoreRef.current.style.top = "-9999px"
+      scoreRef.current.style.pointerEvents = "none"
+    }
+    
     if (scoreImageUrl) {
       setShareModalOpen(true)
       setIsGeneratingImage(false)
@@ -174,6 +186,8 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
       if (imageUrl) {
         setShareModalOpen(true)
       }
+    } catch (error) {
+      console.error("Error generating score card:", error)
     } finally {
       setIsGeneratingImage(false)
     }
@@ -297,17 +311,23 @@ const Modal: React.FC<ModalProps> = ({ open, reactionTime, onClose, onRetry }) =
 const cleanupAfterShare = () => {
   setShareModalOpen(false)
   setShouldRenderScoreElement(false)
+  setScoreImageUrl(null) // Reset the score image URL to ensure a fresh generation next time
 
   // Restore normal page behavior
   document.body.style.overflow = ""
   document.documentElement.style.touchAction = ""
 
+  // Complete reset of the score element
   if (scoreRef.current) {
     scoreRef.current.style.opacity = "0"
     scoreRef.current.style.transform = "none"
     scoreRef.current.style.position = "absolute"
     scoreRef.current.style.pointerEvents = "none"
     scoreRef.current.style.visibility = "hidden"
+    scoreRef.current.style.left = "-9999px"
+    scoreRef.current.style.top = "-9999px"
+    scoreRef.current.style.width = "320px"
+    scoreRef.current.style.height = "320px"
     scoreRef.current.setAttribute("aria-hidden", "true")
   }
 
@@ -454,10 +474,13 @@ return (
         sx={{
           display: "flex",
           justifyContent: "center",
-          alignItems: "flex-start", // Changed from center to flex-start to ensure it stretches to bottom
-          width: "100%",
-          height: "100%",
+          alignItems: "flex-start",
+          width: "100vw",
+          height: "100vh",
           top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
           position: "fixed",
           backgroundColor: "transparent",
           zIndex: 1,
@@ -466,6 +489,9 @@ return (
           userSelect: "none",
           overflow: "auto",
           pointerEvents: "auto",
+          margin: 0,
+          padding: 0,
+          boxSizing: "border-box", // Ensure padding doesn't add to dimensions
           // Add custom scrollbar styling
           "&::-webkit-scrollbar": {
             width: "8px",
@@ -485,12 +511,18 @@ return (
         BackdropProps={{
           style: {
             backgroundColor: "transparent",
-            position: "fixed", // Changed from absolute to fixed
-            top: 0, // Changed from 60px to 0
-            height: "100vh", // Changed to 100vh to ensure full viewport height
-            width: "100vw", // Added to ensure full width
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "100vh",
+            width: "100vw",
+            margin: 0,
+            padding: 0,
             touchAction: "none",
-            pointerEvents: "none", // Disable pointer events on backdrop to prevent dragging
+            pointerEvents: "none",
+            boxSizing: "border-box", // Ensure padding doesn't add to dimensions
           },
         }}
         disableScrollLock={false}
@@ -502,94 +534,105 @@ return (
       >
         <Box
           sx={{
-            width: "100%",
-            minHeight: "100vh", // Changed from height to minHeight + using vh unit
+            width: "100vw",
+            height: "100vh", 
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: isVerySmallScreen ? "flex-start" : "center", // Adjust for smaller screens
-            position: "relative",
+            justifyContent: isVerySmallScreen ? "flex-start" : "center",
+            position: "absolute", 
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
             bgcolor: "transparent",
             backgroundImage: `url(${backgroundImage})`,
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
-            backgroundAttachment: "fixed", // Added to make background fixed
-            overflow: "auto", // Enable scrolling
-            overflowX: "hidden", // Hide horizontal scrollbar
+            backgroundAttachment: "fixed",
+            overflow: "auto",
+            overflowX: "hidden",
             zIndex: 2,
-            pb: "0", // Remove bottom padding
-            pt: "60px", // Added padding-top to account for header
-            touchAction: "pan-y", // Enable vertical scrolling
+            margin: 0,
+            padding: 0,
+            paddingTop: "60px",
+            touchAction: "pan-y",
             userSelect: "none",
-            pointerEvents: "auto", // Enable pointer events for content
+            pointerEvents: "auto",
+            boxSizing: "border-box",
             ...fontStyle,
-            // Add custom scrollbar styling
+            // Enhance scrollbar visibility
             "&::-webkit-scrollbar": {
-              width: "8px",
-              background: "rgba(0, 0, 0, 0.1)",
+              width: "12px",
+              background: "rgba(0, 0, 0, 0.2)",
             },
             "&::-webkit-scrollbar-thumb": {
-              background: "rgba(255, 255, 255, 0.4)",
-              borderRadius: "4px",
+              background: "rgba(255, 255, 255, 0.5)",
+              borderRadius: "6px",
+              border: "2px solid rgba(0, 0, 0, 0.2)",
             },
             "&::-webkit-scrollbar-thumb:hover": {
               background: "rgba(255, 255, 255, 0.7)",
             },
             // Firefox scrollbar
             scrollbarWidth: "thin",
-            scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
+            scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
           }}
           onTouchMove={(e) => {
-            e.stopPropagation(); // Allow scrolling but prevent propagation
+            e.stopPropagation();
           }}
           onMouseDown={(e) => {
-            e.stopPropagation(); // Prevent mousedown from bubbling
+            e.stopPropagation();
           }}
         >
-          <Box
+            <Box
             sx={{
-              width: isMobile ? "100%" : "90%",
-              maxWidth: "400px",
+              width: "100%",
+              maxWidth: "100%",
               bgcolor: "rgba(0, 0, 0, 0.7)",
               borderRadius: 0,
               p: isVerySmallScreen ? 2 : 3,
               textAlign: "center",
-              height: "auto",
-              minHeight: isVerySmallScreen ? "auto" : "auto",
+              height: "auto", // Changed from 100% to auto to ensure content fits
+              minHeight: "100vh",
               color: "white",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: "space-between",
-              my: isVerySmallScreen ? 1 : 2,
-              mb: { xs: "100px", sm: "150px" }, // Ensure margin at bottom for all screen sizes
+              justifyContent: "flex-start", // Changed from center to flex-start
+              my: 0,
+              mb: 0,
               zIndex: 3,
-              overflow: "auto", // Enable scrolling
-              overflowX: "hidden", // Hide horizontal scrollbar
-              touchAction: "pan-y", // Enable vertical scrolling
+              overflow: "visible", // Changed from auto to visible
+              overflowY: "visible", // Explicitly set overflow-y to visible
+              overflowX: "hidden",
+              touchAction: "pan-y",
               ...fontStyle,
-              marginBottom: "60px", // Add margin at bottom to prevent overlap
-              // Add custom scrollbar styling
+              position: "relative", // Changed from absolute to relative
+              padding: { xs: 2, sm: 3, md: 4 },
+              boxSizing: "border-box",
+              // Enhanced scrollbar styling
               "&::-webkit-scrollbar": {
-                width: "6px",
+                width: "12px",
                 background: "rgba(0, 0, 0, 0.2)",
               },
               "&::-webkit-scrollbar-thumb": {
-                background: "rgba(255, 255, 255, 0.3)",
-                borderRadius: "3px",
+                background: "rgba(255, 255, 255, 0.5)",
+                borderRadius: "6px",
+                border: "2px solid rgba(0, 0, 0, 0.2)",
               },
               "&::-webkit-scrollbar-thumb:hover": {
-                background: "rgba(255, 255, 255, 0.5)",
+                background: "rgba(255, 255, 255, 0.7)",
               },
               // Firefox scrollbar
-              scrollbarWidth: "thin",
-              scrollbarColor: "rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2)",
+              scrollbarWidth: "auto",
+              scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
             }}
             onTouchMove={(e) => {
-              e.stopPropagation(); // Allow scrolling but prevent propagation
+              e.stopPropagation();
             }}
-          >
+            >
             {shouldRenderScoreElement && (
               <Box
                 ref={scoreRef}
@@ -758,8 +801,9 @@ return (
               display: "flex", 
               flexDirection: "column", 
               alignItems: "center", 
-              mt: isVerySmallScreen ? 1 : "auto",
-              paddingBottom: isVerySmallScreen ? "50px" : "80px", // Increased padding to ensure content is not at the very bottom
+              mt: isVerySmallScreen ? 1 : 3,
+              paddingTop: 2,
+              paddingBottom: isVerySmallScreen ? "50px" : "100px", // Increased bottom padding for more space
             }}>
               <Button
                 fullWidth
@@ -809,8 +853,8 @@ return (
                   bgcolor: "rgba(100, 100, 100, 0.7)",
                   color: "white",
                   borderRadius: "24px",
-                  marginBottom: isVerySmallScreen ? "10px" : "30px",
-                  padding: isVerySmallScreen ? "8px" : "12px",
+                  marginBottom: isVerySmallScreen ? "20px" : "30px", // Slightly increased margin
+                  padding: isVerySmallScreen ? "10px" : "12px", // Slightly increased padding
                   fontSize: isVerySmallScreen ? "14px" : "16px",
                   fontWeight: "normal",
                   textTransform: "none",
@@ -826,8 +870,8 @@ return (
               <button
                 onClick={handleCircuitJourneyClick}
                 style={{
-                  marginBottom: isVerySmallScreen ? "10px" : "150px",
-                  padding: isVerySmallScreen ? "8px" : "12px",
+                  marginBottom: isVerySmallScreen ? "30px" : "50px", // Reduced from 150px to ensure it's visible
+                  padding: isVerySmallScreen ? "10px" : "12px",
                   width: isVerySmallScreen ? "80%" : "90%",
                   borderRadius: "24px",
                   backgroundColor: "white",
@@ -887,7 +931,9 @@ return (
           onClick={(e) => e.stopPropagation()}
         >
           <IconButton
-            onClick={() => setShareModalOpen(false)}
+            onClick={() => {
+              cleanupAfterShare() // Use the comprehensive cleanup function
+            }}
             sx={{
               position: "absolute",
               top: 8,
