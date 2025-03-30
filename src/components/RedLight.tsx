@@ -758,7 +758,7 @@ const RedLight: React.FC = () => {
         width: "100%",
         height: "100vh",
         overflow: "hidden",
-        position: "fixed", // Change from relative to fixed to prevent scrolling
+        position: "fixed", // Keep fixed to prevent scrolling
         top: 0,
         left: 0,
         padding: 0,
@@ -771,74 +771,21 @@ const RedLight: React.FC = () => {
       }}
       onTouchMove={(e) => e.preventDefault()} // Additional prevention of touch moves
     >
-      {/* Title banner replacing the SVG header */}
+      {/* Game Content Container - Move this above the header so visuals go edge-to-edge */}
       <Box
         sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          background: "white",
-          padding: 0,
-          borderRadius: "0 0 24px 24px", // Rounded corners at bottom (3xl in tailwind is ~24px)
-          textAlign: "center",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // shadow-xl equivalent
-          zIndex: 1000,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "65px", // Match the exact height from EventMapHeader
-          fontFamily: "'MyCustomFont', sans-serif",
-          transition: "all 1000ms ease-in-out", // Match duration-1000 ease-in-out
-        }}
-      >
-        <Box
-          component="h1"
-          sx={{
-        color: "black",
-        fontSize: "1.6rem", // Match the text-[1.6rem]
-        margin: 0,
-        letterSpacing: "1px",
-        fontWeight: "bold", // Changed from normal to bold
-        fontFamily: "'MyCustomFont', sans-serif",
-        "& .highlight-red": {
-          color: "#ff0000", // Exact hex color from the example
-          fontWeight: 900, // Extra bold for highlighted characters
-        },
-          }}
-        >
-          <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
-        </Box>
-        <Box
-          component="h2"
-          sx={{
-        color: "black",
-        fontSize: "12px", // Match text-[12px]
-        margin: "0 0 5px 0", // Adjust bottom margin to match mb-5
-        fontWeight: 800, // Increased from bold to extra-bold
-        fontFamily: "'JapaneseFont', sans-serif", // Equivalent to font-[JPFonts]
-          }}
-        >
-          リアクションタイムテスト
-        </Box>
-      </Box>
-
-      {/* Spacer div to prevent content from being hidden under the fixed header */}
-      <Box sx={{ height: "65px", width: "100%" }} />
-
-      {/* Game Content Container */}
-      <Box
-        sx={{
-          position: "relative",
+          position: "absolute",
           width: "100%",
           height: "100%",
+          top: 0,
+          left: 0,
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "space-between",
           flex: 1,
           fontFamily: "'MyCustomFont', sans-serif",
+          zIndex: 1, // Lower z-index so header appears above
         }}
       >
         {/* Initial screen - with fade-out animation when state changes */}
@@ -868,12 +815,11 @@ const RedLight: React.FC = () => {
               alt="F1 Car"
               sx={{
                 height: "100%",
-                width: "110%",
-                maxWidth: "450px",
+                width: "100%", // Changed to 100% to fill screen edge-to-edge
+                objectFit: "cover", // Ensure image covers the full area
                 position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
+                top: 0,
+                left: 0,
                 zIndex: 2,
               }}
               // Force reload of image with timestamp to prevent caching
@@ -1122,6 +1068,61 @@ const RedLight: React.FC = () => {
           />
         )}
       </Box>
+
+      {/* Title banner now appears above the game content with a higher z-index */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          background: "white",
+          padding: 0,
+          borderRadius: "0 0 24px 24px", // Rounded corners at bottom (3xl in tailwind is ~24px)
+          textAlign: "center",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)", // shadow-xl equivalent
+          zIndex: 1000, // Ensure it's above the game content
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "65px", // Match the exact height from EventMapHeader
+          fontFamily: "'MyCustomFont', sans-serif",
+          transition: "all 1000ms ease-in-out", // Match duration-1000 ease-in-out
+        }}
+      >
+        <Box
+          component="h1"
+          sx={{
+            color: "black",
+            fontSize: "1.6rem", // Match the text-[1.6rem]
+            margin: 0,
+            letterSpacing: "1px",
+            fontWeight: "bold", // Changed from normal to bold
+            fontFamily: "'MyCustomFont', sans-serif",
+            "& .highlight-red": {
+              color: "#ff0000", // Exact hex color from the example
+              fontWeight: 900, // Extra bold for highlighted characters
+            },
+          }}
+        >
+          <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
+        </Box>
+        <Box
+          component="h2"
+          sx={{
+            color: "black",
+            fontSize: "12px", // Match text-[12px]
+            margin: "0 0 5px 0", // Adjust bottom margin to match mb-5
+            fontWeight: 800, // Increased from bold to extra-bold
+            fontFamily: "'JapaneseFont', sans-serif", // Equivalent to font-[JPFonts]
+          }}
+        >
+          リアクションタイムテスト
+        </Box>
+      </Box>
+
+      {/* Remove the spacer div as we don't need it anymore */}
 
       {/* Reaction Time Modal */}
       <Modal
