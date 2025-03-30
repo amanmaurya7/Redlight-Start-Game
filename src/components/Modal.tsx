@@ -486,26 +486,32 @@ return (
           ...fontStyle,
           touchAction: "pan-y",
           userSelect: "none",
-          overflow: "auto",
+          overflow: "auto", // Keep overflow auto to enable scrolling
           pointerEvents: "auto",
           margin: 0,
           padding: 0,
-          boxSizing: "border-box", // Ensure padding doesn't add to dimensions
-          // Add custom scrollbar styling
+          boxSizing: "border-box",
+          // Hide scrollbar for all devices by default
           "&::-webkit-scrollbar": {
-            width: "8px",
-            background: "rgba(0, 0, 0, 0.1)",
+            display: "none", // Hide scrollbar for Chrome/Safari/Edge
           },
-          "&::-webkit-scrollbar-thumb": {
-            background: "rgba(255, 255, 255, 0.4)",
-            borderRadius: "4px",
+          scrollbarWidth: "none", // Hide scrollbar for Firefox
+          msOverflowStyle: "none", // Hide scrollbar for IE
+          // Only show scrollbar on very small devices (iPhone SE/Mini size)
+          "@media (max-width: 375px) and (max-height: 667px)": {
+            "&::-webkit-scrollbar": {
+              display: "block", // Show scrollbar
+              width: "8px",
+              background: "rgba(0, 0, 0, 0.1)",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(255, 255, 255, 0.4)",
+              borderRadius: "4px",
+            },
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
+            msOverflowStyle: "auto",
           },
-          "&::-webkit-scrollbar-thumb:hover": {
-            background: "rgba(255, 255, 255, 0.7)",
-          },
-          // Firefox scrollbar
-          scrollbarWidth: "thin",
-          scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
         }}
         BackdropProps={{
           style: {
@@ -550,7 +556,7 @@ return (
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             backgroundAttachment: "fixed",
-            overflow: "auto",
+            overflow: "auto", // Keep overflow auto to enable scrolling
             overflowX: "hidden",
             zIndex: 2,
             margin: 0,
@@ -561,22 +567,27 @@ return (
             pointerEvents: "auto",
             boxSizing: "border-box",
             ...fontStyle,
-            // Enhance scrollbar visibility
+            // Hide scrollbar for all devices by default
             "&::-webkit-scrollbar": {
-              width: "12px",
-              background: "rgba(0, 0, 0, 0.2)",
+              display: "none", // Hide scrollbar for Chrome/Safari/Edge
             },
-            "&::-webkit-scrollbar-thumb": {
-              background: "rgba(255, 255, 255, 0.5)",
-              borderRadius: "6px",
-              border: "2px solid rgba(0, 0, 0, 0.2)",
+            scrollbarWidth: "none", // Hide scrollbar for Firefox
+            msOverflowStyle: "none", // Hide scrollbar for IE
+            // Only show scrollbar on very small devices (iPhone SE/Mini size)
+            "@media (max-width: 375px) and (max-height: 667px)": {
+              "&::-webkit-scrollbar": {
+                display: "block", // Show scrollbar
+                width: "8px",
+                background: "rgba(0, 0, 0, 0.2)",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255, 255, 255, 0.5)",
+                borderRadius: "6px",
+                border: "2px solid rgba(0, 0, 0, 0.2)",
+              },
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
             },
-            "&::-webkit-scrollbar-thumb:hover": {
-              background: "rgba(255, 255, 255, 0.7)",
-            },
-            // Firefox scrollbar
-            scrollbarWidth: "thin",
-            scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
           }}
           onTouchMove={(e) => {
             e.stopPropagation();
@@ -611,22 +622,28 @@ return (
               position: "relative", // Changed from absolute to relative
               padding: { xs: 2, sm: 3, md: 4 },
               boxSizing: "border-box",
-              // Enhanced scrollbar styling
+              // Hide scrollbar on all devices
               "&::-webkit-scrollbar": {
-                width: "12px",
-                background: "rgba(0, 0, 0, 0.2)",
+                display: "none",
               },
-              "&::-webkit-scrollbar-thumb": {
-                background: "rgba(255, 255, 255, 0.5)",
-                borderRadius: "6px",
-                border: "2px solid rgba(0, 0, 0, 0.2)",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              // Only show scrollbar for very small devices
+              "@media (max-width: 375px) and (max-height: 667px)": {
+                "&::-webkit-scrollbar": {
+                  display: "block",
+                  width: "8px",
+                  background: "rgba(0, 0, 0, 0.2)",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: "rgba(255, 255, 255, 0.5)",
+                  borderRadius: "6px",
+                  border: "2px solid rgba(0, 0, 0, 0.2)",
+                },
+                scrollbarWidth: "auto",
+                scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
+                msOverflowStyle: "auto",
               },
-              "&::-webkit-scrollbar-thumb:hover": {
-                background: "rgba(255, 255, 255, 0.7)",
-              },
-              // Firefox scrollbar
-              scrollbarWidth: "auto",
-              scrollbarColor: "rgba(255, 255, 255, 0.5) rgba(0, 0, 0, 0.2)",
             }}
             onTouchMove={(e) => {
               e.stopPropagation();
