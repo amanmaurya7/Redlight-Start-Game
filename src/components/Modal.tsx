@@ -454,25 +454,41 @@ return (
         sx={{
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "flex-start", // Changed from center to flex-start to ensure it stretches to bottom
           width: "100%",
-          height: "calc(100% - 60px)",
-          top: "60px",
-          position: "absolute",
+          height: "100%",
+          top: 0,
+          position: "fixed",
           backgroundColor: "transparent",
           zIndex: 1,
           ...fontStyle,
-          touchAction: "none",
+          touchAction: "pan-y",
           userSelect: "none",
           overflow: "auto",
-          pointerEvents: "auto", // Ensure pointer events are enabled for the modal itself
+          pointerEvents: "auto",
+          // Add custom scrollbar styling
+          "&::-webkit-scrollbar": {
+            width: "8px",
+            background: "rgba(0, 0, 0, 0.1)",
+          },
+          "&::-webkit-scrollbar-thumb": {
+            background: "rgba(255, 255, 255, 0.4)",
+            borderRadius: "4px",
+          },
+          "&::-webkit-scrollbar-thumb:hover": {
+            background: "rgba(255, 255, 255, 0.7)",
+          },
+          // Firefox scrollbar
+          scrollbarWidth: "thin",
+          scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
         }}
         BackdropProps={{
           style: {
             backgroundColor: "transparent",
-            position: "absolute",
-            top: "60px",
-            height: "calc(100% - 60px)",
+            position: "fixed", // Changed from absolute to fixed
+            top: 0, // Changed from 60px to 0
+            height: "100vh", // Changed to 100vh to ensure full viewport height
+            width: "100vw", // Added to ensure full width
             touchAction: "none",
             pointerEvents: "none", // Disable pointer events on backdrop to prevent dragging
           },
@@ -487,28 +503,45 @@ return (
         <Box
           sx={{
             width: "100%",
-            height: "100%",
+            minHeight: "100vh", // Changed from height to minHeight + using vh unit
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
+            justifyContent: isVerySmallScreen ? "flex-start" : "center", // Adjust for smaller screens
             position: "relative",
             bgcolor: "transparent",
             backgroundImage: `url(${backgroundImage})`,
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
-            overflow: "hidden", // Change from auto to hidden to prevent scrolling
+            backgroundAttachment: "fixed", // Added to make background fixed
+            overflow: "auto", // Enable scrolling
+            overflowX: "hidden", // Hide horizontal scrollbar
             zIndex: 2,
-            pb: isVerySmallScreen ? "10px" : "60px",
-            touchAction: "none", // Disable all touch actions
+            pb: "0", // Remove bottom padding
+            pt: "60px", // Added padding-top to account for header
+            touchAction: "pan-y", // Enable vertical scrolling
             userSelect: "none",
             pointerEvents: "auto", // Enable pointer events for content
             ...fontStyle,
+            // Add custom scrollbar styling
+            "&::-webkit-scrollbar": {
+              width: "8px",
+              background: "rgba(0, 0, 0, 0.1)",
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "rgba(255, 255, 255, 0.4)",
+              borderRadius: "4px",
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "rgba(255, 255, 255, 0.7)",
+            },
+            // Firefox scrollbar
+            scrollbarWidth: "thin",
+            scrollbarColor: "rgba(255, 255, 255, 0.4) rgba(0, 0, 0, 0.1)",
           }}
           onTouchMove={(e) => {
-            e.preventDefault(); // Prevent touch movement
-            e.stopPropagation();
+            e.stopPropagation(); // Allow scrolling but prevent propagation
           }}
           onMouseDown={(e) => {
             e.stopPropagation(); // Prevent mousedown from bubbling
@@ -523,21 +556,38 @@ return (
               p: isVerySmallScreen ? 2 : 3,
               textAlign: "center",
               height: "auto",
-              minHeight: isVerySmallScreen ? "80%" : "100%",
+              minHeight: isVerySmallScreen ? "auto" : "auto",
               color: "white",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "space-between",
               my: isVerySmallScreen ? 1 : 2,
+              mb: { xs: "100px", sm: "150px" }, // Ensure margin at bottom for all screen sizes
               zIndex: 3,
-              overflow: "auto",
-              touchAction: "none", // Disable touch actions here too
+              overflow: "auto", // Enable scrolling
+              overflowX: "hidden", // Hide horizontal scrollbar
+              touchAction: "pan-y", // Enable vertical scrolling
               ...fontStyle,
+              marginBottom: "60px", // Add margin at bottom to prevent overlap
+              // Add custom scrollbar styling
+              "&::-webkit-scrollbar": {
+                width: "6px",
+                background: "rgba(0, 0, 0, 0.2)",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                background: "rgba(255, 255, 255, 0.3)",
+                borderRadius: "3px",
+              },
+              "&::-webkit-scrollbar-thumb:hover": {
+                background: "rgba(255, 255, 255, 0.5)",
+              },
+              // Firefox scrollbar
+              scrollbarWidth: "thin",
+              scrollbarColor: "rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.2)",
             }}
             onTouchMove={(e) => {
-              e.preventDefault(); // Prevent touch movement
-              e.stopPropagation();
+              e.stopPropagation(); // Allow scrolling but prevent propagation
             }}
           >
             {shouldRenderScoreElement && (
@@ -709,7 +759,7 @@ return (
               flexDirection: "column", 
               alignItems: "center", 
               mt: isVerySmallScreen ? 1 : "auto",
-              mb: isVerySmallScreen ? 1 : 0
+              paddingBottom: isVerySmallScreen ? "50px" : "80px", // Increased padding to ensure content is not at the very bottom
             }}>
               <Button
                 fullWidth
@@ -908,5 +958,3 @@ return (
 }
 
 export default Modal
-
-// Remove these redundant function declarations as they're already defined within the component
