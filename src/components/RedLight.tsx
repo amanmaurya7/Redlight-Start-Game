@@ -1083,16 +1083,17 @@ const RedLight: React.FC = () => {
         <Box
           component="h1"
           sx={{
-            color: "black",
-            fontSize: "1.6rem", // Match the text-[1.6rem]
-            margin: 0,
-            letterSpacing: "1px",
-            fontWeight: "bold", // Changed from normal to bold
-            fontFamily: "'MyCustomFont', sans-serif",
-            "& .highlight-red": {
-              color: "#ff0000", // Exact hex color from the example
-              fontWeight: 900, // Extra bold for highlighted characters
-            },
+        color: "black",
+        fontSize: "1.6rem", // Match the text-[1.6rem]
+        margin: 0,
+        marginBottom: "6px", // Added gap between the two lines
+        letterSpacing: "1px",
+        fontWeight: "bold", // Changed from normal to bold
+        fontFamily: "'MyCustomFont', sans-serif",
+        "& .highlight-red": {
+          color: "#ff0000", // Exact hex color from the example
+          fontWeight: 900, // Extra bold for highlighted characters
+        },
           }}
         >
           <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
@@ -1100,11 +1101,12 @@ const RedLight: React.FC = () => {
         <Box
           component="h2"
           sx={{
-            color: "black",
-            fontSize: "12px", // Match text-[12px]
-            margin: "0 0 5px 0", // Adjust bottom margin to match mb-5
-            fontWeight: 800, // Increased from bold to extra-bold
-            fontFamily: "'JapaneseFont', sans-serif", // Equivalent to font-[JPFonts]
+        color: "black",
+        fontSize: "12px", // Match text-[12px]
+        margin: 0, // Removed the top margin since we added it to the element above
+        marginBottom: "5px", // Keep the bottom margin
+        fontWeight: 'bold', // Increased from 800 to 900 for maximum boldness
+        fontFamily: "'MyCustomFont', sans-serif",
           }}
         >
           リアクションタイムテスト
