@@ -960,9 +960,9 @@ return (
             <CloseIcon />
           </IconButton>
 
-          <Typography variant="h6" sx={{ mb: 2, ...japaneseFontStyle }}>
-            スコアをシェアする
-          </Typography>
+            <Typography variant="h6" sx={{ mb: 2, color: "black", ...fontStyle }}>
+              Share Your Score !!! <br />
+            </Typography>
 
           {scoreImageUrl && (
             <Box
