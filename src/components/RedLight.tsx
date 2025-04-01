@@ -682,34 +682,35 @@ const RedLight: React.FC = () => {
 
   // Create a handler to prevent default touch actions on the entire app
   const preventDefaultTouchAction = (e: TouchEvent) => {
+    // Only prevent default for horizontal swipes or multi-touch gestures
     if (e.touches.length > 1) {
-      e.preventDefault()
+      e.preventDefault();
     }
   }
 
   // Add event listener to prevent pinch zoom and other touch gestures
   useEffect(() => {
-    document.addEventListener("touchmove", preventDefaultTouchAction, { passive: false })
+    document.addEventListener("touchmove", preventDefaultTouchAction, { passive: false });
 
-    // Ensure the viewport meta tag is set correctly
-    const viewportMeta = document.querySelector('meta[name="viewport"]')
+    // Ensure the viewport meta tag is set correctly but allow scrolling
+    const viewportMeta = document.querySelector('meta[name="viewport"]');
     if (viewportMeta) {
       viewportMeta.setAttribute(
         "content",
-        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no",
-      )
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      );
     } else {
       // If viewport meta doesn't exist, create it
-      const meta = document.createElement("meta")
-      meta.name = "viewport"
-      meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
-      document.head.appendChild(meta)
+      const meta = document.createElement("meta");
+      meta.name = "viewport";
+      meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
+      document.head.appendChild(meta);
     }
 
     return () => {
-      document.removeEventListener("touchmove", preventDefaultTouchAction)
+      document.removeEventListener("touchmove", preventDefaultTouchAction);
     }
-  }, [])
+  }, []);
 
   // Add this new useEffect to reset button state when returning to init
   useEffect(() => {
