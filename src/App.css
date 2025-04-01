@@ -23,7 +23,7 @@ html, body {
 }
 
 body {
-  font-family: 'MyCustomFont', sans-serif;
+  font-family: 'MyCustomFont';
   overflow: hidden;
   overscroll-behavior: none; /* Prevent pull-to-refresh and bounce effects */
 }
@@ -33,7 +33,7 @@ body {
   height: 100vh;
   margin: 0;
   padding: 0;
-  font-family: 'MyCustomFont', sans-serif;
+  font-family: 'MyCustomFont';
   overflow: hidden;
   position: relative;
 }

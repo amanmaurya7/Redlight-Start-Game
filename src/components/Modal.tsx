@@ -886,7 +886,7 @@ return (
               <button
                 onClick={handleCircuitJourneyClick}
                 style={{
-                  marginBottom: isVerySmallScreen ? "30px" : "50px", // Reduced from 150px to ensure it's visible
+                  marginBottom: isVerySmallScreen ? "40px" : "60px", // Reduced from 150px to ensure it's visible
                   padding: isVerySmallScreen ? "10px" : "12px",
                   width: isVerySmallScreen ? "80%" : "90%",
                   borderRadius: "24px",
