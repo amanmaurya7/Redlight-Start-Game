@@ -751,8 +751,8 @@ const RedLight: React.FC = () => {
       sx={{
         width: "100%",
         height: "100vh",
-        overflow: "hidden",
-        position: "fixed", // Keep fixed to prevent scrolling
+        overflow: "auto", // Changed from "hidden" to "auto" to enable scrolling
+        position: "fixed",
         top: 0,
         left: 0,
         padding: 0,
@@ -761,16 +761,27 @@ const RedLight: React.FC = () => {
         flexDirection: "column",
         backgroundColor: "#242424",
         fontFamily: "'MyCustomFont', sans-serif",
-        touchAction: "none", // Disable browser handling of all touch gestures
+        touchAction: "pan-y", // Allow vertical scrolling but still disable horizontal gestures
+        // Hide scrollbars across browsers while maintaining scroll functionality
+        "&::-webkit-scrollbar": {
+          display: "none", // Safari and Chrome
+        },
+        scrollbarWidth: "none", // Firefox
+        msOverflowStyle: "none", // IE and Edge
       }}
-      onTouchMove={(e) => e.preventDefault()} // Additional prevention of touch moves
+      onTouchMove={(e) => {
+        // Only prevent default for horizontal movement or multi-touch
+        if (e.touches.length > 1) {
+          e.preventDefault();
+        }
+      }}
     >
       {/* Game Content Container - Move this above the header so visuals go edge-to-edge */}
       <Box
         sx={{
           position: "absolute",
           width: "100%",
-          height: "100%",
+          minHeight: "100%", // Changed from height to minHeight to support scrolling
           top: 0,
           left: 0,
           display: "flex",
@@ -780,6 +791,7 @@ const RedLight: React.FC = () => {
           flex: 1,
           fontFamily: "'MyCustomFont', sans-serif",
           zIndex: 1, // Lower z-index so header appears above
+          paddingBottom: "100px", // Add padding at bottom to ensure content is not cut off
         }}
       >
         {/* Initial screen - with no transition animation when state changes */}
