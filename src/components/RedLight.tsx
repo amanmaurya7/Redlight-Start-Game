@@ -968,6 +968,7 @@ const RedLight: React.FC = () => {
               transition: "opacity 0.3s ease-in-out",
               filter: buttonActive ? "brightness(1.1)" : "grayscale(0.7)", // Add grayscale filter when inactive
               willChange: "opacity",
+              fontFamily: "'MyCustomFont', sans-serif",
               "@media screen and (max-width: 320px)": {
                 width: "100px",
                 bottom: "15%",
@@ -1056,6 +1057,7 @@ const RedLight: React.FC = () => {
               transition: "opacity 0.3s ease-in-out",
               filter: buttonActive ? "brightness(1.1)" : "none",
               willChange: "opacity",
+              fontFamily: "'MyCustomFont', sans-serif",
               "@media screen and (max-width: 320px)": {
                 width: "100px",
                 bottom: "15%",
