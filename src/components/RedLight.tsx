@@ -228,6 +228,7 @@ const RedLight: React.FC = () => {
   const [videoError, setVideoError] = useState<string | null>(null);
   const [showMissionBanner, setShowMissionBanner] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(false); // Add new state for video loading
 
   const section1VideoRef = useRef<HTMLVideoElement>(null);
   const section2VideoRef = useRef<HTMLVideoElement>(null);
@@ -512,20 +513,76 @@ const RedLight: React.FC = () => {
 
   const startGame = () => {
     console.log("Start button clicked");
+    
+    // Show loading indicator
+    setIsVideoLoading(true);
+    
+    // Reset and ensure video is ready to be played
     if (section1VideoRef.current) {
       section1VideoRef.current.currentTime = 0;
-      section1VideoRef.current.style.display = "block";
-      section1VideoRef.current.style.opacity = "1";
-      section1VideoRef.current.pause();
+      
+      // Add event listener to know when video is ready
+      const handleVideoReady = () => {
+        console.log("Video is ready to play");
+        
+        // Remove the event listener
+        section1VideoRef.current?.removeEventListener('canplaythrough', handleVideoReady);
+        
+        // Hide loading indicator
+        setIsVideoLoading(false);
+        
+        // Show the video
+        if (section1VideoRef.current) {
+          section1VideoRef.current.style.display = "block";
+          section1VideoRef.current.style.opacity = "1";
+          section1VideoRef.current.pause();
+        }
+        
+        // Switch to mission intro state
+        setGameState("missionIntro");
+        
+        // Show mission banner
+        setTimeout(() => {
+          setShowMissionBanner(true);
+        }, 100);
+      };
+      
+      // Attach event listener for video ready state
+      section1VideoRef.current.addEventListener('canplaythrough', handleVideoReady);
+      
+      // Force reload the video to ensure fresh load
+      section1VideoRef.current.load();
+      
+      // Add a safety timeout in case the video takes too long to load
+      setTimeout(() => {
+        if (isVideoLoading) {
+          console.log("Video load timeout - proceeding anyway");
+          setIsVideoLoading(false);
+          setGameState("missionIntro");
+          
+          // Show video and mission banner
+          if (section1VideoRef.current) {
+            section1VideoRef.current.style.display = "block";
+            section1VideoRef.current.style.opacity = "1";
+            section1VideoRef.current.pause();
+          }
+          
+          setTimeout(() => {
+            setShowMissionBanner(true);
+          }, 100);
+          
+          // Remove the event listener if it's still attached
+          section1VideoRef.current?.removeEventListener('canplaythrough', handleVideoReady);
+        }
+      }, 5000); // 5 second safety timeout
+    } else {
+      // Fallback if video ref isn't available
+      setIsVideoLoading(false);
+      setGameState("missionIntro");
+      setTimeout(() => {
+        setShowMissionBanner(true);
+      }, 100);
     }
-    setGameState("missionIntro");
-    setTimeout(() => {
-      if (section1VideoRef.current) {
-        section1VideoRef.current.currentTime = 0;
-        section1VideoRef.current.pause();
-      }
-      setShowMissionBanner(true);
-    }, 100);
   };
 
   const handleMissionBannerComplete = () => {
@@ -736,9 +793,18 @@ const RedLight: React.FC = () => {
                 marginTop: { xs: "80px", sm: "100px", md: "120px" },
               }}
             >
-              {gameState === "loading" ? (
+              {gameState === "loading" || isVideoLoading ? (
                 <>
-                  <CircularProgress sx={{ color: "white", mb: 1 }} />
+                  <CircularProgress 
+                    sx={{ 
+                      color: "#E00400", // Red color to match F1 theme
+                      mb: 1,
+                      '& .MuiCircularProgress-circle': {
+                        strokeWidth: 5, // Slightly thicker progress circle
+                      }
+                    }} 
+                    size={50} 
+                  />
                   <Box
                     sx={{
                       color: "white",
@@ -747,7 +813,7 @@ const RedLight: React.FC = () => {
                       fontFamily: "'MyCustomFont', sans-serif",
                     }}
                   >
-                    Loading...
+                    {isVideoLoading ? "Loading Game..." : "Loading..."}
                   </Box>
                 </>
               ) : (
