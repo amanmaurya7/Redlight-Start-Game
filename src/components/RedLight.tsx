@@ -1,5 +1,3 @@
-"use client"
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
@@ -73,13 +71,17 @@ const TapButton = ({ onClick, active = true }: { onClick?: () => void; active?: 
           fontFamily="MyCustomFont"
           letterSpacing="0.014em"
         >
-          <tspan x="-20.419" y="8">TAP</tspan>
-          <tspan x="-30.761" y="32">HERE</tspan>
+          <tspan x="-20.419" y="8">
+            TAP
+          </tspan>
+          <tspan x="-30.761" y="32">
+            HERE
+          </tspan>
         </text>
       </g>
     </svg>
   </Box>
-);
+)
 
 // Preload background image to ensure it's cached
 const preloadBackgroundImage = () => {
@@ -646,20 +648,22 @@ const RedLight: React.FC = () => {
   const startGame = () => {
     console.log("Start button clicked")
 
-    // Change the state to missionIntro immediately without transition
+    // First display the video for a smooth transition
+    if (section1VideoRef.current) {
+      section1VideoRef.current.currentTime = 0
+      section1VideoRef.current.style.display = "block"
+      section1VideoRef.current.style.opacity = "1"
+      section1VideoRef.current.pause()
+    }
+
+    // Change the state to missionIntro immediately
     setGameState("missionIntro")
 
     // Wait a small amount of time to ensure video is ready and visible but paused
     setTimeout(() => {
-      // Make sure video is reset to the beginning and paused
-      if (section1VideoRef.current) {
-        section1VideoRef.current.currentTime = 0
-        section1VideoRef.current.pause()
-      }
-
       // Now show mission banner on top of the static video
       setShowMissionBanner(true)
-    }, 50)
+    }, 100) // Increased from 50ms to 100ms to ensure frame is visible
   }
 
   // Handle mission banner animation completion
@@ -874,7 +878,7 @@ const RedLight: React.FC = () => {
               sx={{
                 height: "100%",
                 width: "100%", // Full width
-                objectFit: "cover", 
+                objectFit: "cover",
                 objectPosition: "center 40%", // Position car higher in the viewport (40% from top)
                 position: "absolute",
                 top: 0,
@@ -890,162 +894,163 @@ const RedLight: React.FC = () => {
             {/* Start Button or Loading Indicator */}
             <Box
               sx={{
-                position: "absolute",
-                bottom: { xs: "15%", sm: "18%", md: "20%" }, // Position from bottom of screen
-                width: "100%",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 4,
-                opacity: 1,
-                fontFamily: "'MyCustomFont', sans-serif",
-                // Add padding to ensure content doesn't get too close to the bottom
-                paddingBottom: { xs: "20px", sm: "30px", md: "40px" },
+              position: "absolute",
+              bottom: { xs: "15%", sm: "18%", md: "20%" }, // Position from bottom of screen
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              alignItems: "center",
+              zIndex: 4,
+              opacity: 1,
+              fontFamily: "'MyCustomFont', sans-serif",
+              // Add padding to ensure content doesn't get too close to the bottom
+              paddingBottom: { xs: "20px", sm: "30px", md: "40px" },
+              marginTop: "5px", // Added 5px margin top
               }}
             >
               {gameState === "loading" ? (
-                <>
-                  <CircularProgress sx={{ color: "white", mb: 1 }} />
-                  <Box sx={{ color: "white", fontSize: "16px", mt: 1, fontFamily: "'MyCustomFont', sans-serif" }}>
-                    Loading...
-                  </Box>
-                </>
+              <>
+                <CircularProgress sx={{ color: "white", mb: 1 }} />
+                <Box sx={{ color: "white", fontSize: "16px", mt: 1, fontFamily: "'MyCustomFont', sans-serif" }}>
+                Loading...
+                </Box>
+              </>
               ) : (
-                <>
-                  <Box
-                    component="button"
-                    ref={startButtonRef}
-                    onClick={gameState === "init" ? startGame : undefined}
-                    disabled={gameState !== "init"}
-                    className="start-button"
-                    sx={{
-                      width: "80%",
-                      maxWidth: "300px", // Increased from 280px
-                      height: "auto",
-                      padding: "12px 0", // Increased from 12px
-                      borderRadius: "28px", // Increased from 24px
-                      backgroundColor: "#f5f6fa",
-                      color: "#2f3640",
-                      border: "none",
-                      fontSize: "20px", // Increased from 20px
-                      fontWeight: "bold",
-                      cursor: gameState === "init" ? "pointer" : "default",
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                      transition: "all 0.3s ease",
-                      fontFamily: "'MyCustomFont', sans-serif",
-                      marginTop: "80px", // Increased from 40px to add more top margin
-                      // Responsive styles for different screen sizes
-                      "@media screen and (max-width: 768px)": {
-                        maxWidth: "280px", // Increased from 250px
-                        fontSize: "20px", // Increased from 15px
-                        marginTop: "95px", // Added responsive margin
-                      },
-                      "@media screen and (max-width: 480px)": {
-                        maxWidth: "260px", // Increased from 220px
-                        fontSize: "18px", // Increased from 14px
-                        padding: "14px 0", // Increased from 10px
-                        marginTop: "50px", // Added responsive margin
-                      },
-                      "@media screen and (max-height: 500px)": {
-                        maxWidth: "240px", // Increased from 200px
-                        fontSize: "16px", // Increased from 14px
-                        padding: "10px 0", // Increased from 8px
-                        marginTop: "20px", // Kept smaller margin for shorter screens
-                      },
-                      "@media screen and (max-height: 400px)": {
-                        maxWidth: "200px", // Increased from 180px
-                        fontSize: "15px", // Increased from 13px
-                        padding: "8px 0", // Increased from 6px
-                        marginTop: "15px", // Kept smaller margin for very short screens
-                      },
-                      "&:hover": {
-                        backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
-                        transform: gameState === "init" ? "translateY(-2px)" : "none",
-                        boxShadow:
-                          gameState === "init" ? "0 6px 8px rgba(0, 0, 0, 0.15)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
-                      },
-                      "&:active": {
-                        transform: gameState === "init" ? "translateY(1px)" : "none",
-                        boxShadow: gameState === "init" ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
-                      },
-                      "&:focus": {
-                        outline: "none",
-                      },
-                      "&:not(:focus-visible)": {
-                        backgroundColor: "#f5f6fa !important",
-                        transform: "none !important",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
-                      },
-                    }}
-                    key={`start-button-${gameState === "init" ? "ready" : "disabled"}-${Date.now()}`}
-                  >
-                    START
-                  </Box>
+              <>
+                <Box
+                component="button"
+                ref={startButtonRef}
+                onClick={gameState === "init" ? startGame : undefined}
+                disabled={gameState !== "init"}
+                className="start-button"
+                sx={{
+                  width: "80%",
+                  maxWidth: "300px", // Increased from 280px
+                  height: "auto",
+                  padding: "12px 0", // Increased from 12px
+                  borderRadius: "28px", // Increased from 24px
+                  backgroundColor: "#f5f6fa",
+                  color: "#2f3640",
+                  border: "none",
+                  fontSize: "20px", // Increased from 20px
+                  fontWeight: "bold",
+                  cursor: gameState === "init" ? "pointer" : "default",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  transition: "all 0.3s ease",
+                  fontFamily: "'MyCustomFont', sans-serif",
+                  marginTop: "95px", // Increased from 80px to move button down
+                  // Responsive styles for different screen sizes
+                  "@media screen and (max-width: 768px)": {
+                  maxWidth: "280px", // Increased from 250px
+                  fontSize: "20px", // Increased from 15px
+                  marginTop: "110px", // Increased from 95px
+                  },
+                  "@media screen and (max-width: 480px)": {
+                  maxWidth: "260px", // Increased from 220px
+                  fontSize: "18px", // Increased from 14px
+                  padding: "14px 0", // Increased from 10px
+                  marginTop: "65px", // Increased from 50px
+                  },
+                  "@media screen and (max-height: 500px)": {
+                  maxWidth: "240px", // Increased from 200px
+                  fontSize: "16px", // Increased from 14px
+                  padding: "10px 0", // Increased from 8px
+                  marginTop: "20px", // Kept smaller margin for shorter screens
+                  },
+                  "@media screen and (max-height: 400px)": {
+                  maxWidth: "200px", // Increased from 180px
+                  fontSize: "15px", // Increased from 13px
+                  padding: "8px 0", // Increased from 6px
+                  marginTop: "15px", // Kept smaller margin for very short screens
+                  },
+                  "&:hover": {
+                  backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
+                  transform: gameState === "init" ? "translateY(-2px)" : "none",
+                  boxShadow:
+                    gameState === "init" ? "0 6px 8px rgba(0, 0, 0, 0.15)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  },
+                  "&:active": {
+                  transform: gameState === "init" ? "translateY(1px)" : "none",
+                  boxShadow:
+                    gameState === "init" ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                  },
+                  "&:focus": {
+                  outline: "none",
+                  },
+                  "&:not(:focus-visible)": {
+                  backgroundColor: "#f5f6fa !important",
+                  transform: "none !important",
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
+                  },
+                }}
+                key={`start-button-${gameState === "init" ? "ready" : "disabled"}-${Date.now()}`}
+                >
+                START
+                </Box>
 
-                  {/* Logo added below the start button with enhanced responsiveness */}
-                  <Box
-                    component="img"
-                    src={logo}
-                    alt="Grand Prix Logo"
-                    sx={{
-                      width: "180px", // Base size
-                      maxWidth: "50%",
-                      height: "auto",
-                      marginTop: "25px",
-                      marginBottom: { xs: "60px", sm: "70px", md: "80px" }, // Add bottom margin to ensure space from footer
-                      filter: "brightness(1.2)",
-                      // Responsive adjustments for different screen sizes and orientations
-                      "@media screen and (max-width: 768px)": {
-                        width: "160px",
-                        marginTop: "20px",
-                      },
-                      "@media screen and (max-width: 480px)": {
-                        width: "140px",
-                        marginTop: "18px",
-                      },
-                      "@media screen and (max-height: 600px)": {
-                        width: "150px",
-                        marginTop: "18px",
-                      },
-                      "@media screen and (max-height: 500px)": {
-                        width: "130px",
-                        marginTop: "14px",
-                      },
-                      "@media screen and (max-height: 400px)": {
-                        width: "110px",
-                        marginTop: "10px",
-                      },
-                      // Landscape orientation adjustments
-                      "@media screen and (max-height: 450px) and (orientation: landscape)": {
-                        width: "120px",
-                        marginTop: "12px",
-                      },
-                      // For very small screens
-                      "@media screen and (max-width: 320px), (max-height: 350px)": {
-                        width: "100px",
-                        marginTop: "8px",
-                      },
-                    }}
-                  />
-                </>
+                <Box
+                component="img"
+                src={logo}
+                alt="Grand Prix Logo"
+                sx={{
+                  width: "180px", // Base size
+                  maxWidth: "50%",
+                  height: "auto",
+                  marginTop: "25px",
+                  marginBottom: { xs: "60px", sm: "70px", md: "80px" }, // Add bottom margin to ensure space from footer
+                  filter: "brightness(1.2)",
+                  // Responsive adjustments for different screen sizes and orientations
+                  "@media screen and (max-width: 768px)": {
+                  width: "160px",
+                  marginTop: "20px",
+                  },
+                  "@media screen and (max-width: 480px)": {
+                  width: "140px",
+                  marginTop: "18px",
+                  },
+                  "@media screen and (max-height: 600px)": {
+                  width: "150px",
+                  marginTop: "18px",
+                  },
+                  "@media screen and (max-height: 500px)": {
+                  width: "130px",
+                  marginTop: "14px",
+                  },
+                  "@media screen and (max-height: 400px)": {
+                  width: "110px",
+                  marginTop: "10px",
+                  },
+                  // Landscape orientation adjustments
+                  "@media screen and (max-height: 450px) and (orientation: landscape)": {
+                  width: "120px",
+                  marginTop: "12px",
+                  },
+                  // For very small screens
+                  "@media screen and (max-width: 320px), (max-height: 350px)": {
+                  width: "100px",
+                  marginTop: "8px",
+                  },
+                }}
+                />
+              </>
               )}
 
               {/* Error message if video failed to load */}
               {videoError && (
-                <Box
-                  sx={{
-                    color: "white",
-                    backgroundColor: "rgba(255, 0, 0, 0.7)",
-                    padding: "8px 12px",
-                    borderRadius: "4px",
-                    marginTop: "10px",
-                    fontSize: "14px",
-                    fontFamily: "'MyCustomFont', sans-serif",
-                  }}
-                >
-                  {videoError}
-                </Box>
+              <Box
+                sx={{
+                color: "white",
+                backgroundColor: "rgba(255, 0, 0, 0.7)",
+                padding: "8px 12px",
+                borderRadius: "4px",
+                marginTop: "10px",
+                fontSize: "14px",
+                fontFamily: "'MyCustomFont', sans-serif",
+                }}
+              >
+                {videoError}
+              </Box>
               )}
             </Box>
           </Box>
@@ -1061,13 +1066,13 @@ const RedLight: React.FC = () => {
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width: "100vw", // Use viewport width for better responsiveness
+            height: "100vh", // Use viewport height for better responsiveness
             objectFit: "cover",
             zIndex: 1,
             opacity: getVideoVisibility("section1") ? 1 : 0,
             display: getVideoVisibility("section1") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
+            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
           }}
           playsInline
           preload="auto"
@@ -1082,10 +1087,7 @@ const RedLight: React.FC = () => {
           gameState === "waitingForDelay" ||
           gameState === "section2" ||
           gameState === "waitingForTap") && (
-         <TapButton
-            onClick={buttonActive ? handleTapClick : undefined}
-            active={buttonActive}
-          />
+          <TapButton onClick={buttonActive ? handleTapClick : undefined} active={buttonActive} />
         )}
 
         {/* Section 2 Video - Add cache busting parameter */}
@@ -1095,13 +1097,13 @@ const RedLight: React.FC = () => {
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width: "100vw", // Use viewport width for better responsiveness
+            height: "100vh", // Use viewport height for better responsiveness
             objectFit: "cover",
             zIndex: 1,
             opacity: getVideoVisibility("section2") ? 1 : 0,
             display: getVideoVisibility("section2") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
+            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
           }}
           playsInline
           preload="auto"
@@ -1118,13 +1120,13 @@ const RedLight: React.FC = () => {
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width: "100vw", // Use viewport width for better responsiveness
+            height: "100vh", // Use viewport height for better responsiveness
             objectFit: "cover",
             zIndex: 1,
             opacity: getVideoVisibility("section3") ? 1 : 0,
             display: getVideoVisibility("section3") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
+            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
           }}
           playsInline
           preload="auto"
@@ -1142,10 +1144,7 @@ const RedLight: React.FC = () => {
 
         {/* Tap button shown during Section 2 with enhanced responsiveness */}
         {(gameState === "section2" || gameState === "waitingForTap") && (
-          <TapButton
-            onClick={buttonActive ? handleTapClick : undefined}
-            active={buttonActive}
-          />
+          <TapButton onClick={buttonActive ? handleTapClick : undefined} active={buttonActive} />
         )}
       </Box>
 
@@ -1219,7 +1218,6 @@ const RedLight: React.FC = () => {
       <BottomNav />
     </Box>
   )
-
 }
 
 export default RedLight
