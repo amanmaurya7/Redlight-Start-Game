@@ -790,7 +790,7 @@ const RedLight: React.FC = () => {
                 opacity: 1,
                 fontFamily: "'MyCustomFont', sans-serif",
                 paddingBottom: { xs: "10px", sm: "10px", md: "10px" },
-                marginTop: { xs: "80px", sm: "100px", md: "120px" },
+                marginTop: { xs: "0px", sm: "100px", md: "120px" },
               }}
             >
               {gameState === "loading" || isVideoLoading ? (
