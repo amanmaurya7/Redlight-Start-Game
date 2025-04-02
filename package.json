@@ -15,6 +15,7 @@
     "@line/liff": "^2.25.1",
     "@mui/icons-material": "^6.4.7",
     "@mui/material": "^6.4.6",
+    "f1-thirdgame": "file:",
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",
