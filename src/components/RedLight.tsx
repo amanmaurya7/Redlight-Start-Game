@@ -8,6 +8,7 @@ import Modal from "./Modal"
 import BottomNav from "./BottomNav"
 import TapHereButton from "../images/start-button.svg"
 import Svg7 from "../images/7.svg" // Initial screen background image
+import logo from "../images/grandprix.svg"
 
 // Import all three videos and sound
 import Section1Video from "../assets/F1_RTT_movie1.mp4"
@@ -842,49 +843,117 @@ const RedLight: React.FC = () => {
                   </Box>
                 </>
               ) : (
-                <Box
-                  component="button"
-                  ref={startButtonRef}
-                  onClick={gameState === "init" ? startGame : undefined}
-                  disabled={gameState !== "init"}
-                  className="start-button"
-                  sx={{
-                    width: "80%",
-                    maxWidth: "280px",
-                    height: "48px",
-                    borderRadius: "24px",
-                    backgroundColor: "#f5f6fa",
-                    color: "#2f3640",
-                    border: "none",
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    cursor: gameState === "init" ? "pointer" : "default",
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    transition: "all 0.3s ease",
-                    fontFamily: "'MyCustomFont', sans-serif",
-                    "&:hover": {
-                      backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
-                      transform: gameState === "init" ? "translateY(-2px)" : "none",
-                      boxShadow:
-                        gameState === "init" ? "0 6px 8px rgba(0, 0, 0, 0.15)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    },
-                    "&:active": {
-                      transform: gameState === "init" ? "translateY(1px)" : "none",
-                      boxShadow: gameState === "init" ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
-                    },
-                    "&:focus": {
-                      outline: "none",
-                    },
-                    "&:not(:focus-visible)": {
-                      backgroundColor: "#f5f6fa !important",
-                      transform: "none !important",
-                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
-                    },
-                  }}
-                  key={`start-button-${gameState === "init" ? "ready" : "disabled"}-${Date.now()}`}
-                >
-                  START
-                </Box>
+                <>
+                  <Box
+                    component="button"
+                    ref={startButtonRef}
+                    onClick={gameState === "init" ? startGame : undefined}
+                    disabled={gameState !== "init"}
+                    className="start-button"
+                    sx={{
+                      width: "80%",
+                      maxWidth: "280px",
+                      height: "auto", // Changed from fixed height to auto
+                      padding: "12px 0", // Added padding instead of fixed height
+                      borderRadius: "24px",
+                      backgroundColor: "#f5f6fa",
+                      color: "#2f3640",
+                      border: "none",
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      cursor: gameState === "init" ? "pointer" : "default",
+                      boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      transition: "all 0.3s ease",
+                      fontFamily: "'MyCustomFont', sans-serif",
+                      // Responsive styles for different screen sizes
+                      "@media screen and (max-width: 768px)": {
+                        maxWidth: "250px",
+                        fontSize: "15px",
+                      },
+                      "@media screen and (max-width: 480px)": {
+                        maxWidth: "220px",
+                        fontSize: "14px",
+                        padding: "10px 0",
+                      },
+                      "@media screen and (max-height: 500px)": {
+                        maxWidth: "200px",
+                        fontSize: "14px",
+                        padding: "8px 0",
+                      },
+                      "@media screen and (max-height: 400px)": {
+                        maxWidth: "180px",
+                        fontSize: "13px",
+                        padding: "6px 0",
+                      },
+                      "&:hover": {
+                        backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
+                        transform: gameState === "init" ? "translateY(-2px)" : "none",
+                        boxShadow:
+                          gameState === "init" ? "0 6px 8px rgba(0, 0, 0, 0.15)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      },
+                      "&:active": {
+                        transform: gameState === "init" ? "translateY(1px)" : "none",
+                        boxShadow: gameState === "init" ? "0 2px 4px rgba(0, 0, 0, 0.1)" : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                      },
+                      "&:focus": {
+                        outline: "none",
+                      },
+                      "&:not(:focus-visible)": {
+                        backgroundColor: "#f5f6fa !important",
+                        transform: "none !important",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
+                      },
+                    }}
+                    key={`start-button-${gameState === "init" ? "ready" : "disabled"}-${Date.now()}`}
+                  >
+                    START
+                  </Box>
+                  
+                  {/* Logo added below the start button with enhanced responsiveness */}
+                  <Box
+                    component="img"
+                    src={logo}
+                    alt="Grand Prix Logo"
+                    sx={{
+                      width: "180px", // Base size
+                      maxWidth: "50%",
+                      height: "auto",
+                      marginTop: "25px",
+                      filter: "brightness(1.2)",
+                      // Responsive adjustments for different screen sizes and orientations
+                      "@media screen and (max-width: 768px)": {
+                        width: "160px",
+                        marginTop: "20px",
+                      },
+                      "@media screen and (max-width: 480px)": {
+                        width: "140px",
+                        marginTop: "18px",
+                      },
+                      "@media screen and (max-height: 600px)": {
+                        width: "150px",
+                        marginTop: "18px",
+                      },
+                      "@media screen and (max-height: 500px)": {
+                        width: "130px",
+                        marginTop: "14px",
+                      },
+                      "@media screen and (max-height: 400px)": {
+                        width: "110px",
+                        marginTop: "10px",
+                      },
+                      // Landscape orientation adjustments
+                      "@media screen and (max-height: 450px) and (orientation: landscape)": {
+                        width: "120px",
+                        marginTop: "12px",
+                      },
+                      // For very small screens
+                      "@media screen and (max-width: 320px), (max-height: 350px)": {
+                        width: "100px",
+                        marginTop: "8px",
+                      },
+                    }}
+                  />
+                </>
               )}
 
               {/* Error message if video failed to load */}
@@ -933,7 +1002,7 @@ const RedLight: React.FC = () => {
           Your browser does not support the video tag.
         </video>
 
-        {/* Tap button shown during Section 1 (inactive) and Section 2 (active) */}
+        {/* Tap button shown during Section 1 (inactive) and Section 2 (active) with enhanced responsiveness */}
         {(gameState === "section1" ||
           gameState === "waitingForDelay" ||
           gameState === "section2" ||
@@ -952,20 +1021,58 @@ const RedLight: React.FC = () => {
               left: "50%", // Center the button horizontally
               transform: "translateX(-50%)", // Ensure proper centering
               opacity: buttonActive ? 1 : 0.3, // More transparent when inactive
-              transition: "opacity 0.3s ease-in-out",
+              transition: "opacity 0.3s ease-in-out, transform 0.2s ease-in-out", // Added transform for tap effect
               filter: buttonActive ? "brightness(1.1)" : "grayscale(0.7)", // Add grayscale filter when inactive
-              willChange: "opacity",
-              "@media screen and (max-width: 320px)": {
+              willChange: "opacity, transform",
+              // Added transform effect on hover/active when button is active
+              "&:hover": {
+                transform: buttonActive ? "translateX(-50%) scale(1.05)" : "translateX(-50%)",
+              },
+              "&:active": {
+                transform: buttonActive ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
+              },
+              // Enhanced responsive styles
+              "@media screen and (min-width: 769px)": {
+                width: "140px", // Larger on bigger screens
+                bottom: "20%",
+              },
+              "@media screen and (max-width: 480px)": {
+                width: "110px",
+                bottom: "16%",
+              },
+              "@media screen and (max-width: 360px)": {
                 width: "100px",
                 bottom: "15%",
               },
-              "@media screen and (max-height: 500px)": {
+              "@media screen and (max-width: 320px)": {
+                width: "90px",
+                bottom: "14%",
+              },
+              // Height-based media queries
+              "@media screen and (max-height: 700px)": {
+                width: "110px",
+                bottom: "16%",
+              },
+              "@media screen and (max-height: 600px)": {
                 width: "100px",
+                bottom: "14%",
+              },
+              "@media screen and (max-height: 500px)": {
+                width: "90px",
                 bottom: "12%",
               },
               "@media screen and (max-height: 400px)": {
                 width: "80px",
                 bottom: "10%",
+              },
+              // Orientation specific adjustments
+              "@media screen and (max-height: 500px) and (orientation: landscape)": {
+                width: "85px",
+                bottom: "12%",
+              },
+              "@media screen and (max-height: 400px) and (orientation: landscape)": {
+                width: "75px",
+                bottom: "9%",
               },
             }}
             onClick={buttonActive ? handleTapClick : undefined}
@@ -1024,7 +1131,7 @@ const RedLight: React.FC = () => {
           Your browser does not support the audio element.
         </audio>
 
-        {/* Tap button shown during Section 2 */}
+        {/* Tap button shown during Section 2 with enhanced responsiveness */}
         {(gameState === "section2" || gameState === "waitingForTap") && (
           <Box
             component="img"
@@ -1040,20 +1147,58 @@ const RedLight: React.FC = () => {
               left: "50%", // Center the button horizontally
               transform: "translateX(-50%)", // Ensure proper centering
               opacity: buttonActive ? 1 : 0.5,
-              transition: "opacity 0.3s ease-in-out",
+              transition: "opacity 0.3s ease-in-out, transform 0.2s ease-in-out", // Added transform for tap effect
               filter: buttonActive ? "brightness(1.1)" : "none",
-              willChange: "opacity",
-              "@media screen and (max-width: 320px)": {
+              willChange: "opacity, transform",
+              // Added transform effect on hover/active when button is active
+              "&:hover": {
+                transform: buttonActive ? "translateX(-50%) scale(1.05)" : "translateX(-50%)",
+              },
+              "&:active": {
+                transform: buttonActive ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
+              },
+              // Enhanced responsive styles (same as the first tap button for consistency)
+              "@media screen and (min-width: 769px)": {
+                width: "140px", // Larger on bigger screens
+                bottom: "20%",
+              },
+              "@media screen and (max-width: 480px)": {
+                width: "110px",
+                bottom: "16%",
+              },
+              "@media screen and (max-width: 360px)": {
                 width: "100px",
                 bottom: "15%",
               },
-              "@media screen and (max-height: 500px)": {
+              "@media screen and (max-width: 320px)": {
+                width: "90px",
+                bottom: "14%",
+              },
+              // Height-based media queries
+              "@media screen and (max-height: 700px)": {
+                width: "110px",
+                bottom: "16%",
+              },
+              "@media screen and (max-height: 600px)": {
                 width: "100px",
+                bottom: "14%",
+              },
+              "@media screen and (max-height: 500px)": {
+                width: "90px",
                 bottom: "12%",
               },
               "@media screen and (max-height: 400px)": {
                 width: "80px",
                 bottom: "10%",
+              },
+              // Orientation specific adjustments
+              "@media screen and (max-height: 500px) and (orientation: landscape)": {
+                width: "85px",
+                bottom: "12%",
+              },
+              "@media screen and (max-height: 400px) and (orientation: landscape)": {
+                width: "75px",
+                bottom: "9%",
               },
             }}
             onClick={buttonActive ? handleTapClick : undefined}
