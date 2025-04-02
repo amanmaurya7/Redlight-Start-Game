@@ -7,7 +7,7 @@
 
 @font-face {
   font-family: 'JapaneseFont';
-  src: url('./assets/japanese.otf') format('truetype');
+  src: url('./assets/Hiragino-Kakugo-Pro\ W6.otf') format('truetype');
   font-weight: normal;
   font-style: normal;
 }

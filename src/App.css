@@ -6,10 +6,8 @@
   }
 
   @font-face {
-    font-family: 'JapaneseFont';
-    src: url('./assets/japanese.otf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+    font-family: 'Hiragino Kaku Gothic Pro';
+    src: url('./assets/Hiragino-Kakugo-Pro\ W6.otf') format('opentype');
 }
 
 html, body {
@@ -23,7 +21,6 @@ html, body {
 }
 
 body {
-  font-family: 'MyCustomFont';
   overflow: hidden;
   overscroll-behavior: none; /* Prevent pull-to-refresh and bounce effects */
 }

@@ -109,7 +109,7 @@ const preloadBackgroundImage = () => {
 };
 
 const japaneseFontStyle = {
-  fontFamily: "'JapaneseFont', sans-serif",
+  fontFamily: 'JapaneseFont',
 };
 
 const MissionBanner = ({
@@ -187,6 +187,7 @@ const MissionBanner = ({
           fontSize: "12px",
           margin: "8px 0 0",
           ...japaneseFontStyle,
+          fontFamily: "JapaneseFont",
           textAlign: "center",
           maxWidth: "90%",
           "@media screen and (max-height: 500px)": {
@@ -1104,10 +1105,10 @@ const RedLight: React.FC = () => {
             margin: 0,
             marginBottom: "5px",
             fontWeight: "bold",
-            fontFamily: "'MyCustomFont', sans-serif",
+            fontFamily: "'Hiragino Kaku Gothic Pro Bold'",
           }}
         >
-          リアクションタイムテスト
+          <span className=" ">リアクションタイムテスト</span>
         </Box>
       </Box>
 
