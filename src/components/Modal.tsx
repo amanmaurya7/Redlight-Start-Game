@@ -461,7 +461,7 @@ const handleCircuitJourneyClick = () => {
   document.dispatchEvent(stopAudioEvent)
 
   // Navigate to the circuit journey page
-  window.location.href = "https://new-jp-map.vercel.app/"
+  window.location.href = "https://miniapp.line.me/2007078799-0oWyrXee/circuitjourney"
 }
 
 // Rest of the component (UI) remains unchanged
@@ -898,8 +898,8 @@ return (
                 }}
               >
                 <strong className="font-normal">
-                  CI<span style={{ color: "#ff0000" }}>R</span>CUIT JOURN
-                  <span style={{ color: "#ff0000" }}>E</span>Y
+                  CI<span style={{ color: "#E00400" }}>R</span>CUIT JOURN
+                  <span style={{ color: "#E00400" }}>E</span>Y
                 </strong>
               </button>
             </Box>

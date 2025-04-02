@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { Box, CircularProgress } from "@mui/material"
 import Modal from "./Modal"
 import BottomNav from "./BottomNav"
+import TapHereButton from "../images/start-button.svg"
 import Svg7 from "../images/7.svg" // Initial screen background image
 
 // Import all three videos and sound
@@ -13,73 +14,6 @@ import Section1Video from "../assets/F1_RTT_movie1.mp4"
 import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4"
 import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4"
 import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3"
-
-// Custom TapButton component that uses inline SVG
-const TapButton = ({ onClick, active = true }: { onClick?: () => void; active?: boolean }) => (
-  <Box
-    component="button"
-    onClick={active ? onClick : undefined}
-    sx={{
-      position: "absolute",
-      zIndex: 2,
-      background: "none",
-      border: "none",
-      padding: 0,
-      width: "120px",
-      height: "auto",
-      cursor: active ? "pointer" : "default",
-      bottom: "18%",
-      left: "50%",
-      transform: "translateX(-50%)",
-      opacity: active ? 1 : 0.3,
-      transition: "opacity 0.3s ease-in-out, transform 0.2s ease",
-      filter: active ? "brightness(1.1)" : "grayscale(0.7)",
-      willChange: "opacity",
-      "&:active": {
-        transform: active ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
-      },
-      "&:focus": {
-        outline: "none",
-      },
-      "@media screen and (max-width: 320px)": {
-        width: "100px",
-        bottom: "15%",
-      },
-      "@media screen and (max-height: 500px)": {
-        width: "100px",
-        bottom: "12%",
-      },
-      "@media screen and (max-height: 400px)": {
-        width: "80px",
-        bottom: "10%",
-      },
-    }}
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 119.266 129">
-      <g id="アクセルボタン" transform="translate(-253 -663)" style={{ isolation: "isolate" }}>
-        <path
-          id="Path_39"
-          data-name="Path 39"
-          d="M16.853,0h85.56c9.308,0,16.853,5.82,16.853,13V116c0,7.18-7.545,13-16.853,13H16.853c-9.308,0,11.411-16.692,11.411-23.872V80.138L0,13C0,5.82,7.545,0,16.853,0Z"
-          transform="translate(253 663)"
-          fill="#dd1c1c"
-          style={{ mixBlendMode: "multiply", isolation: "isolate" }}
-        />
-        <text
-          id="MISSION"
-          transform="translate(320.266 695)"
-          fill="#fff"
-          fontSize="20"
-          fontFamily="MyCustomFont"
-          letterSpacing="0.014em"
-        >
-          <tspan x="-20.419" y="8">TAP</tspan>
-          <tspan x="-30.761" y="32">HERE</tspan>
-        </text>
-      </g>
-    </svg>
-  </Box>
-);
 
 // Preload background image to ensure it's cached
 const preloadBackgroundImage = () => {
@@ -91,7 +25,7 @@ const preloadBackgroundImage = () => {
 };
 
 const japaneseFontStyle = {
-  fontFamily: "'JapaneseFont'",
+  fontFamily: "'JapaneseFont', sans-serif",
 }
 
 // Add MissionBanner and WhiteBelt components
@@ -748,35 +682,34 @@ const RedLight: React.FC = () => {
 
   // Create a handler to prevent default touch actions on the entire app
   const preventDefaultTouchAction = (e: TouchEvent) => {
-    // Only prevent default for horizontal swipes or multi-touch gestures
     if (e.touches.length > 1) {
-      e.preventDefault();
+      e.preventDefault()
     }
   }
 
   // Add event listener to prevent pinch zoom and other touch gestures
   useEffect(() => {
-    document.addEventListener("touchmove", preventDefaultTouchAction, { passive: false });
+    document.addEventListener("touchmove", preventDefaultTouchAction, { passive: false })
 
-    // Ensure the viewport meta tag is set correctly but allow scrolling
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
+    // Ensure the viewport meta tag is set correctly
+    const viewportMeta = document.querySelector('meta[name="viewport"]')
     if (viewportMeta) {
       viewportMeta.setAttribute(
         "content",
-        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-      );
+        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no",
+      )
     } else {
       // If viewport meta doesn't exist, create it
-      const meta = document.createElement("meta");
-      meta.name = "viewport";
-      meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no";
-      document.head.appendChild(meta);
+      const meta = document.createElement("meta")
+      meta.name = "viewport"
+      meta.content = "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
+      document.head.appendChild(meta)
     }
 
     return () => {
-      document.removeEventListener("touchmove", preventDefaultTouchAction);
+      document.removeEventListener("touchmove", preventDefaultTouchAction)
     }
-  }, []);
+  }, [])
 
   // Add this new useEffect to reset button state when returning to init
   useEffect(() => {
@@ -818,8 +751,8 @@ const RedLight: React.FC = () => {
       sx={{
         width: "100%",
         height: "100vh",
-        overflow: "auto", // Changed from "hidden" to "auto" to enable scrolling
-        position: "fixed",
+        overflow: "hidden",
+        position: "fixed", // Keep fixed to prevent scrolling
         top: 0,
         left: 0,
         padding: 0,
@@ -828,27 +761,16 @@ const RedLight: React.FC = () => {
         flexDirection: "column",
         backgroundColor: "#242424",
         fontFamily: "'MyCustomFont', sans-serif",
-        touchAction: "pan-y", // Allow vertical scrolling but still disable horizontal gestures
-        // Hide scrollbars across browsers while maintaining scroll functionality
-        "&::-webkit-scrollbar": {
-          display: "none", // Safari and Chrome
-        },
-        scrollbarWidth: "none", // Firefox
-        msOverflowStyle: "none", // IE and Edge
+        touchAction: "none", // Disable browser handling of all touch gestures
       }}
-      onTouchMove={(e) => {
-        // Only prevent default for horizontal movement or multi-touch
-        if (e.touches.length > 1) {
-          e.preventDefault();
-        }
-      }}
+      onTouchMove={(e) => e.preventDefault()} // Additional prevention of touch moves
     >
       {/* Game Content Container - Move this above the header so visuals go edge-to-edge */}
       <Box
         sx={{
           position: "absolute",
           width: "100%",
-          minHeight: "100%", // Changed from height to minHeight to support scrolling
+          height: "100%",
           top: 0,
           left: 0,
           display: "flex",
@@ -858,7 +780,6 @@ const RedLight: React.FC = () => {
           flex: 1,
           fontFamily: "'MyCustomFont', sans-serif",
           zIndex: 1, // Lower z-index so header appears above
-          paddingBottom: "100px", // Add padding at bottom to ensure content is not cut off
         }}
       >
         {/* Initial screen - with no transition animation when state changes */}
@@ -1017,9 +938,37 @@ const RedLight: React.FC = () => {
           gameState === "waitingForDelay" ||
           gameState === "section2" ||
           gameState === "waitingForTap") && (
-          <TapButton 
+          <Box
+            component="img"
+            src={TapHereButton}
+            alt="Tap Here"
+            sx={{
+              position: "absolute",
+              zIndex: 2,
+              width: "120px", // Default size
+              height: "auto",
+              cursor: buttonActive ? "pointer" : "default",
+              bottom: "18%",
+              left: "50%", // Center the button horizontally
+              transform: "translateX(-50%)", // Ensure proper centering
+              opacity: buttonActive ? 1 : 0.3, // More transparent when inactive
+              transition: "opacity 0.3s ease-in-out",
+              filter: buttonActive ? "brightness(1.1)" : "grayscale(0.7)", // Add grayscale filter when inactive
+              willChange: "opacity",
+              "@media screen and (max-width: 320px)": {
+                width: "100px",
+                bottom: "15%",
+              },
+              "@media screen and (max-height: 500px)": {
+                width: "100px",
+                bottom: "12%",
+              },
+              "@media screen and (max-height: 400px)": {
+                width: "80px",
+                bottom: "10%",
+              },
+            }}
             onClick={buttonActive ? handleTapClick : undefined}
-            active={buttonActive}
           />
         )}
 
@@ -1077,7 +1026,38 @@ const RedLight: React.FC = () => {
 
         {/* Tap button shown during Section 2 */}
         {(gameState === "section2" || gameState === "waitingForTap") && (
-          <></>
+          <Box
+            component="img"
+            src={TapHereButton}
+            alt="Tap Here"
+            sx={{
+              position: "absolute",
+              zIndex: 2,
+              width: "120px", // Default size
+              height: "auto",
+              cursor: buttonActive ? "pointer" : "default",
+              bottom: "18%",
+              left: "50%", // Center the button horizontally
+              transform: "translateX(-50%)", // Ensure proper centering
+              opacity: buttonActive ? 1 : 0.5,
+              transition: "opacity 0.3s ease-in-out",
+              filter: buttonActive ? "brightness(1.1)" : "none",
+              willChange: "opacity",
+              "@media screen and (max-width: 320px)": {
+                width: "100px",
+                bottom: "15%",
+              },
+              "@media screen and (max-height: 500px)": {
+                width: "100px",
+                bottom: "12%",
+              },
+              "@media screen and (max-height: 400px)": {
+                width: "80px",
+                bottom: "10%",
+              },
+            }}
+            onClick={buttonActive ? handleTapClick : undefined}
+          />
         )}
       </Box>
 
@@ -1114,7 +1094,7 @@ const RedLight: React.FC = () => {
         fontWeight: "bold", // Changed from normal to bold
         fontFamily: "'MyCustomFont', sans-serif",
         "& .highlight-red": {
-          color: "#ff0000", // Exact hex color from the example
+          color: "#E00400", // Exact hex color from the example
           fontWeight: 900, // Extra bold for highlighted characters
         },
           }}
