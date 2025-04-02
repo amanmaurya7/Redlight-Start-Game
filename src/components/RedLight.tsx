@@ -939,7 +939,7 @@ const RedLight: React.FC = () => {
                       "@media screen and (max-width: 768px)": {
                         maxWidth: "280px", // Increased from 250px
                         fontSize: "20px", // Increased from 15px
-                        marginTop: "65px", // Added responsive margin
+                        marginTop: "95px", // Added responsive margin
                       },
                       "@media screen and (max-width: 480px)": {
                         maxWidth: "260px", // Increased from 220px
