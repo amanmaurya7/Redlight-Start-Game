@@ -1059,20 +1059,23 @@ const RedLight: React.FC = () => {
         {/* Mission Banner Overlay */}
         {showMissionBanner && <MissionBanner visible={true} onAnimationComplete={handleMissionBannerComplete} />}
 
-        {/* Section 1 Video - Add cache busting parameter */}
+        {/* Section 1 Video - Enhanced responsive styling */}
         <video
           ref={section1VideoRef}
           style={{
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100vw", // Use viewport width for better responsiveness
-            height: "100vh", // Use viewport height for better responsiveness
+            width: "100%", 
+            height: "100%", 
             objectFit: "cover",
+            objectPosition: "center center",
+            maxWidth: "none", // Remove max-width constraint
+            maxHeight: "none", // Remove max-height constraint
             zIndex: 1,
             opacity: getVideoVisibility("section1") ? 1 : 0,
             display: getVideoVisibility("section1") ? "block" : "none",
-            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
+            transition: "opacity 0.3s ease-in-out",
           }}
           playsInline
           preload="auto"
@@ -1090,20 +1093,23 @@ const RedLight: React.FC = () => {
           <TapButton onClick={buttonActive ? handleTapClick : undefined} active={buttonActive} />
         )}
 
-        {/* Section 2 Video - Add cache busting parameter */}
+        {/* Section 2 Video - Enhanced responsive styling */}
         <video
           ref={section2VideoRef}
           style={{
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100vw", // Use viewport width for better responsiveness
-            height: "100vh", // Use viewport height for better responsiveness
+            width: "100%",
+            height: "100%",
             objectFit: "cover",
+            objectPosition: "center center",
+            maxWidth: "none", // Remove max-width constraint
+            maxHeight: "none", // Remove max-height constraint
             zIndex: 1,
             opacity: getVideoVisibility("section2") ? 1 : 0,
             display: getVideoVisibility("section2") ? "block" : "none",
-            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
+            transition: "opacity 0.3s ease-in-out",
           }}
           playsInline
           preload="auto"
@@ -1113,20 +1119,23 @@ const RedLight: React.FC = () => {
           Your browser does not support the video tag.
         </video>
 
-        {/* Section 3 Video - Add cache busting parameter */}
+        {/* Section 3 Video - Enhanced responsive styling */}
         <video
           ref={section3VideoRef}
           style={{
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100vw", // Use viewport width for better responsiveness
-            height: "100vh", // Use viewport height for better responsiveness
+            width: "100%",
+            height: "100%",
             objectFit: "cover",
+            objectPosition: "center center",
+            maxWidth: "none", // Remove max-width constraint
+            maxHeight: "none", // Remove max-height constraint
             zIndex: 1,
             opacity: getVideoVisibility("section3") ? 1 : 0,
             display: getVideoVisibility("section3") ? "block" : "none",
-            transition: "opacity 0.3s ease-in-out", // Faster transition to prevent blackout
+            transition: "opacity 0.3s ease-in-out",
           }}
           playsInline
           preload="auto"
