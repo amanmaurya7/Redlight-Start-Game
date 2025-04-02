@@ -18,7 +18,8 @@
     "html2canvas": "^1.4.1",
     "lucide-react": "^0.477.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

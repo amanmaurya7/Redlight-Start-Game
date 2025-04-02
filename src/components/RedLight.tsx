@@ -652,7 +652,7 @@ const RedLight: React.FC = () => {
         position: "fixed",
         top: 0,
         left: 0,
-        padding: 0,
+        paddingBottom: "65px", // Add padding to make space for the footer
         margin: 0,
         display: "flex",
         flexDirection: "column",

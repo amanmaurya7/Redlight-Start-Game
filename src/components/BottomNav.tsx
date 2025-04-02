@@ -1,193 +1,92 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React from "react";
-import { BottomNavigation, BottomNavigationAction, Paper } from "@mui/material";
+"use client"; // Add this since it’s a client component
+import HamburgerMenu from "./HumburgerMenu";
+import "./Footer.css";
+import { useStore } from "../store/menuStore"; // Adjust path based on your structure
 
-// SVG components will be added directly in the components below
+const BottomNav = () => {
+  const { isOpen, toggleMenu, showLoader, hideLoader } = useStore();
 
-const BottomNav: React.FC = () => {
-    const [value, setValue] = React.useState(0);
+  const handleNavigation = () => {
+    showLoader(); // Show loader on navigation start
+    // Optionally, hide it after a delay or tie it to navigation completion
+    setTimeout(() => hideLoader(), 1000); // Example: hide after 1 second
+  };
 
-    return (
-        <Paper 
-            sx={{ 
-                position: "fixed", 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
-                // Ensure bottom nav stays on top of modal
-                zIndex: 1000, 
-                width: "100%",
-                borderRadius: 0,
-                fontFamily: "'MyCustomFont', sans-serif",
-            }} 
-            elevation={3} // Increased elevation for better shadow
+  const handleMenuToggle = () => {
+    toggleMenu(); // Toggle menu state from store
+    setTimeout(() => hideLoader(), 500); // Hide loader after menu transition
+  };
+
+  const triggerURL = (url: string) => {
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = url;
+
+    document.body.appendChild(iframe);
+
+    console.log("working");
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  };
+
+  return (
+    <footer className="footer">
+      <ul className="footer-btn">
+        <li
+          onClick={() => {
+            triggerURL(
+              "https://app.dialogone.jp/v1/linelogin/auth/414a525aca27bd66?index=20250329appfooterhome"
+            );
+          }}
+          className="footer-btn__item"
         >
-            <BottomNavigation
-                value={value}
-                onChange={(_, newValue) => setValue(newValue)}
-                showLabels
-                sx={{ 
-                    backgroundColor: "#ff0000", 
-                    color: "white",
-                    height: "60px",
-                    fontFamily: "'MyCustomFont', sans-serif",
-                }}
-            >
-                <BottomNavigationAction 
-                    label="HOME" 
-                    icon={ <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="22.466"
-                        height="25.186"
-                        viewBox="0 0 24.466 29.186"
-                      >
-                        <path
-                          id="Path_293"
-                          fill="#fff"
-                          d="M64.785 9.191 55.964.923a3.414 3.414 0 0 0-4.67 0l-8.818 8.268a3.41 3.41 0 0 0-1.076 2.491v14.09a3.414 3.414 0 0 0 3.414 3.414h17.635a3.414 3.414 0 0 0 3.414-3.414v-14.09a3.42 3.42 0 0 0-1.078-2.491m-1.64 16.581a.7.7 0 0 1-.7.7h-5.8v-6.046h-6.036v6.041h-5.8a.695.695 0 0 1-.7-.7V11.682a.7.7 0 0 1 .219-.507l8.819-8.268a.7.7 0 0 1 .95 0l8.819 8.268a.7.7 0 0 1 .22.508v14.09Z"
-                          data-name="Path 293"
-                          transform="translate(-41.397)"
-                        ></path>
-                      </svg>} 
-                    sx={{ 
-                        color: "white",
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: "0.6rem",
-                            fontWeight: "bold",
-                            marginTop: "4px",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        },
-                        "&.Mui-selected": {
-                            transform: "none",
-                            color: "white",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        }
-                    }} 
-                />
-                <BottomNavigationAction 
-                    label="DRIVER" 
-                    onClick={() => window.location.href = 'https://redlight-one.vercel.app/'}
-                    icon={ <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        id="ハンドルアイコン1"
-                       width="22.466"
-                       height="25.186"
-                        viewBox="0 0 29.186 29.186"
-                      >
-                        <path
-                          id="Path_294"
-                          fill="#fff"
-                          d="M232.675 245.5a1.41 1.41 0 1 0 1.41 1.411 1.41 1.41 0 0 0-1.41-1.411"
-                          data-name="Path 294"
-                          transform="translate(-218.082 -231.502)"
-                        ></path>
-                        <path
-                          id="Path_295"
-                          fill="#fff"
-                          d="M24.912 4.274a14.594 14.594 0 1 0 4.274 10.319 14.56 14.56 0 0 0-4.274-10.319M12.654 21.96c-.143 1.9-.7 3.242-2.66 2.394a10.85 10.85 0 0 1-5.273-5.4c-.733-1.928 1-2.615 4.055-2.03a4.47 4.47 0 0 1 3.878 5.036m1.939-4.3a2.256 2.256 0 1 1 2.256-2.26 2.256 2.256 0 0 1-2.256 2.259Zm9.871 1.29a10.85 10.85 0 0 1-5.273 5.4c-1.955.849-2.517-.5-2.66-2.394a4.47 4.47 0 0 1 3.877-5.04c3.06-.582 4.792.105 4.056 2.033Zm-3.526-5.837a29.4 29.4 0 0 0-6.345-1.269 29.4 29.4 0 0 0-6.345 1.269c-3.031.846-4.31-.686-3.676-2.519a10.793 10.793 0 0 1 20.042 0c.634 1.833-.645 3.365-3.676 2.519"
-                          data-name="Path 295"
-                        ></path>
-                      </svg>} 
-                    sx={{ 
-                        color: "white",
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: "0.7rem",
-                            fontWeight: "bold",
-                            marginTop: "4px",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        },
-                        "&.Mui-selected": {
-                            transform: "none",
-                            color: "white",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        }
-                    }} 
-                />
-                <BottomNavigationAction 
-                    label="CIRCUIT" 
-                    onClick={() => window.location.href = 'https://finger-circuit-game.vercel.app/'}
-                    icon={<svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24.466"
-                       height="27.186"
-                        viewBox="0 0 29.213 31.752"
-                      >
-                        <path
-                          id="Path_461"
-                          fill="#fff"
-                          d="M119.9 17.637a2.15 2.15 0 0 0-.17-1.211l-3.63-5.014 3.765-3.757c.323-.355.121-1.4.047-1.706a10.4 10.4 0 0 0-1.006-2.6 7.2 7.2 0 0 0-1.661-2.123A5.28 5.28 0 0 0 113.813 0H97.062a5.28 5.28 0 0 0-3.435 1.226 7.2 7.2 0 0 0-1.66 2.124 10.5 10.5 0 0 0-1.006 2.6c-.073.3-.275 1.35.048 1.706l3.765 3.757-3.631 5.014a2.15 2.15 0 0 0-.17 1.211l2.17 14.115h24.59Zm-3.373-4.184c0 .32-.44.668-1.112.843l-.138.033h-.006l-.137.026h-.009l-.141.021h-.023l-.136.014h-.011l-.145.009h-.183a3.4 3.4 0 0 1-1.409-.284 1.6 1.6 0 0 1-.426-.277.6.6 0 0 1-.21-.37v-.028c0-.3.376-.616.964-.8a3 3 0 0 1 .408-.1 4 4 0 0 1 .414-.05c.069 0 .138-.007.209-.008h.051c1.171 0 2.046.506 2.046.958m-4.913.177a4 4 0 0 1-.26.009 3.6 3.6 0 0 1-1.168-.186 1.2 1.2 0 0 0 .163-.6q.001-.053-.005-.107c-.006-.054-.005-.041-.008-.061s0-.026-.006-.039-.011-.054-.017-.08v-.014l-.027-.089a1.4 1.4 0 0 0-.281-.476 3.4 3.4 0 0 1 1.354-.259 3.4 3.4 0 0 1 1.409.284 2.5 2.5 0 0 0-.689.452l-.062.061-.032.035-.045.051-.035.043-.039.052-.023.033-.047.073-.017.03-.035.064-.011.022-.036.083-.01.027a1 1 0 0 0-.029.087v.017l-.02.082v.019q-.009.047-.013.094v.121a1 1 0 0 0 .014.177m-8.145 2.353a4 4 0 0 1-1.048 0 4 4 0 0 1-.422-.084 3 3 0 0 1-.405-.14c-.428-.188-.689-.451-.689-.7a.48.48 0 0 1 .106-.281 1 1 0 0 1 .116-.127 1.4 1.4 0 0 1 .229-.169 2 2 0 0 1 .273-.137q.087-.036.182-.069a3.6 3.6 0 0 1 1.139-.176 3.8 3.8 0 0 1 .826.089 3 3 0 0 1 .566.187q-.056.032-.108.066a1.53 1.53 0 0 0-.8 1.252 1.2 1.2 0 0 0 .036.288m-2.965-2.625a.5.5 0 0 1-.133-.314.58.58 0 0 1 .223-.408 1 1 0 0 1 .059-.05l.027-.02.036-.027.037-.026.029-.019a3.1 3.1 0 0 1 1.635-.408 3.16 3.16 0 0 1 1.61.392l.036.023.023.016.029.02.023.017.027.02.022.017.025.021.02.017.023.022.018.017.023.024.014.015.033.039.006.008.023.032.01.015.016.025.009.016.012.024.008.017.01.024.006.017q.002.012.007.025v.096a.58.58 0 0 1-.223.408 4.4 4.4 0 0 0-1.29-.184 4 4 0 0 0-1.935.454 1.5 1.5 0 0 1-.512-.364m4.484 1.625a3 3 0 0 1 .4-.133 4 4 0 0 1 .409-.079 4 4 0 0 1 .518-.034 3.13 3.13 0 0 1 1.639.409 1.2 1.2 0 0 0-.065.386 1.24 1.24 0 0 0 .178.631 2.5 2.5 0 0 1-1.083.432h-1.331a3 3 0 0 1-.73-.219 1.8 1.8 0 0 1-.35-.207l-.059-.047a.67.67 0 0 1-.237-.352.4.4 0 0 1-.008-.076c0-.253.275-.523.722-.712m2.449-1.169c-1.171 0-2.046-.506-2.046-.958v-.06c0-.005 0-.022.007-.033v-.016c0-.011.007-.021.011-.032l.006-.015.016-.034.006-.012.023-.039v-.007a2.48 2.48 0 0 1 1.963-.71 3.6 3.6 0 0 1 1.168.186 2.4 2.4 0 0 1 .381.17 1.4 1.4 0 0 1 .335.254.53.53 0 0 1 .162.348.4.4 0 0 1-.045.18.9.9 0 0 1-.279.31 2 2 0 0 1-.369.209 3.4 3.4 0 0 1-1.354.259m6.343-11.894c.515 0 1.405.537 2.217 2.05q.138.259.254.513a3.5 3.5 0 0 0-1.275.925h-2.681a11 11 0 0 0-.449-2.045 6 6 0 0 0-.68-1.444Zm-13.126 1.65a4.3 4.3 0 0 1 .9-1.65h7.75a4.3 4.3 0 0 1 .9 1.65 10.3 10.3 0 0 1 .41 1.839h-10.371a10.3 10.3 0 0 1 .41-1.839m-5.815.4c.812-1.513 1.7-2.05 2.217-2.05h2.615A6 6 0 0 0 99 3.355a11 11 0 0 0-.453 2.045h-2.681a3.5 3.5 0 0 0-1.275-.925 9 9 0 0 1 .254-.513m-1.237 3.8h23.658l-2.716 2.71H96.324Zm5.984 5.5a2.83 2.83 0 0 1-1.824.55h-.177l-.117-.007h-.021l-.131-.013h-.032l-.1-.014h-.028l-.123-.022-.025-.005-.1-.022-.028-.007-.114-.03h-.012l-.1-.03-.026-.009q-.107-.036-.2-.078l-.021-.009-.084-.039h-.01l-.088-.046-.015-.009-.07-.042-.012-.008q-.039-.025-.074-.051l-.008-.006-.06-.047-.012-.01-.06-.055a.55.55 0 0 1-.192-.379c0-.452.875-.958 2.046-.958a2.8 2.8 0 0 1 1.841.568l.027.026.046.049a1.2 1.2 0 0 0-.111.5 1 1 0 0 0 .021.22M94.7 16.061l-.054-.032h-.005l-.05-.033h-.006l-.046-.033h-.007l-.042-.033-.007-.006-.038-.033-.007-.006-.034-.033-.007-.007-.031-.033-.006-.007-.028-.033v-.006l-.032-.046a.45.45 0 0 1-.084-.249c0-.227.221-.468.59-.651l.015-.007.058-.028.022-.009.054-.023.027-.011.053-.021.03-.011.052-.019.033-.011.053-.017.036-.011.054-.015.038-.01.054-.014.04-.009.055-.012.041-.009.056-.011.043-.008.057-.009.044-.007.059-.008.045-.005.062-.006h.376a3.8 3.8 0 0 1 .884.1 1.3 1.3 0 0 0-.338.855q-.001.054.005.1v.037c0 .012.006.043.01.065l.009.046.013.051.015.053.009.025a1 1 0 0 0 .06.148q.019.04.041.077l.005.009.047.077a2 2 0 0 0 .121.162 3.8 3.8 0 0 1-.884.1 3.36 3.36 0 0 1-1.434-.3l-.063-.032-.059-.032m3 12.709a4.1 4.1 0 0 0-2.262-1.729l-.726-4.725a4.1 4.1 0 0 0 2.016-2.18h1.917l.67 8.633ZM98.8 16.323a3 3 0 0 1-.436-.142c-.05-.021-.1-.043-.142-.066l-.087-.046-.019-.011-.064-.038-.079-.054a.67.67 0 0 1-.334-.5.67.67 0 0 1 .334-.5 2 2 0 0 1 .393-.216 3 3 0 0 1 .436-.142 3.8 3.8 0 0 1 .884-.1 4 4 0 0 1 .53.036 1.2 1.2 0 0 0-.113.506v.112c0 .01 0 .035.006.053s0 .023.006.035.005.03.008.045l.009.038.011.04.012.04.012.036.016.043.013.032.02.045.013.027.025.049.011.019.032.055a1.8 1.8 0 0 0 .4.437q.056.045.117.088a3.6 3.6 0 0 1-1.139.176 3.8 3.8 0 0 1-.884-.1m11.09 12.447h-8.912l-.67-8.633h10.253Zm-.58-12.609-.079-.043-.074-.045a1 1 0 0 1-.353-.349.4.4 0 0 1-.054-.2.4.4 0 0 1 .013-.094.74.74 0 0 1 .283-.375 2.96 2.96 0 0 1 1.751-.489c1.171 0 2.046.506 2.046.958v.084q.001.012-.006.022c-.007.01 0 .013-.006.02s-.007.017-.01.026l-.007.016-.015.029-.007.013-.019.032-.006.01-.024.034-.005.007-.03.036v.005l-.035.037-.041.038-.046.039a2.93 2.93 0 0 1-1.771.5 3.3 3.3 0 0 1-1.485-.321m6.125 10.88a4.1 4.1 0 0 0-2.262 1.729h-1.615l.67-8.633h1.917a4.1 4.1 0 0 0 2.016 2.18Zm2.082-10.454h-3.81a.5.5 0 0 1-.141-.324.62.62 0 0 1 .272-.45l.042-.033.007-.005.042-.03.011-.007.042-.028.007.003.043-.026.016-.009.044-.024.018-.01.045-.023.02-.009.047-.022.02-.009.05-.022.018-.007q.083-.034.174-.064l.033-.011.043-.013.04-.012.042-.011.044-.012.042-.01.046-.011.042-.009.048-.01.043-.008.05-.009.043-.007.052-.008.044-.006.054-.007h.044l.057-.005h.627l.08.006h.034l.086.009h.025l.1.015q.171.027.327.068c.673.175 1.112.522 1.112.843a.5.5 0 0 1-.141.324"
-                          data-name="Path 461"
-                          transform="translate(-90.831)"
-                        ></path>
-                      </svg>} 
-                    sx={{ 
-                        color: "white",
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: "0.7rem",
-                            fontWeight: "bold",
-                            marginTop: "4px",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        },
-                        "&.Mui-selected": {
-                            transform: "none",
-                            color: "white",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        }
-                    }} 
-                />
-                <BottomNavigationAction 
-                    label="MENU"
-                    icon={<svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="29"
-                        height="24"
-                        viewBox="0 0 32 26"
-                      >
-                        <g
-                          id="MENU"
-                          fill="none"
-                          stroke="#fff"
-                          strokeLinecap="round"
-                          strokeWidth="2"
-                          transform="translate(1 1)"
-                        >
-                          <path id="Line_6" d="M0 0h30" data-name="Line 6"></path>
-                          <path
-                            id="Line_7"
-                            d="M0 0h30"
-                            data-name="Line 7"
-                            transform="translate(0 12)"
-                          ></path>
-                          <path
-                            id="Line_8"
-                            d="M0 0h30"
-                            data-name="Line 8"
-                            transform="translate(0 24)"
-                          ></path>
-                        </g>
-                      </svg>} 
-                    sx={{ 
-                        color: "white",
-                        "& .MuiBottomNavigationAction-label": { 
-                            color: "white",
-                            fontSize: "0.7rem",
-                            fontWeight: "bold",
-                            marginTop: "4px",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        },
-                        "&.Mui-selected": {
-                            transform: "none",
-                            color: "white",
-                            fontFamily: "'MyCustomFont', sans-serif",
-                        }
-                    }} 
-                />
-            </BottomNavigation>
-        </Paper>
-    );
+          <a
+            href="https://miniapp.line.me/2006998715-gnzj57yj"
+            onClick={handleNavigation}
+          >
+            <img src="/FooterIcons/footer_btn_01.svg" alt="HOME" />
+          </a>
+        </li>
+        <li
+          onClick={() => {
+            triggerURL(
+              "https://app.dialogone.jp/v1/linelogin/auth/414a525aca27bd66?index=20250329appfooterdriver"
+            );
+          }}
+          className="footer-btn__item"
+        >
+          <a
+            href="https://miniapp.line.me/2006998715-gnzj57yj/driver"
+            onClick={handleNavigation}
+          >
+            <img src="/FooterIcons/footer_btn_02.svg" alt="DRIVER" />
+          </a>
+        </li>
+        <li
+          onClick={() => {
+            triggerURL(
+              "https://app.dialogone.jp/v1/linelogin/auth/414a525aca27bd66?index=20250329appfootercircuit"
+            );
+          }}
+          className="footer-btn__item"
+        >
+          <a
+            href="https://miniapp.line.me/2007078799-0oWyrXee/circuitjourney"
+            onClick={handleNavigation}
+          >
+            <img src="/FooterIcons/footer_btn_03.svg" alt="CIRCUIT" />
+          </a>
+        </li>
+        <li className="footer-btn__item">
+          <button onClick={handleMenuToggle}>
+            <img src="/FooterIcons/footer_btn_04.svg" alt="MENU" />
+          </button>
+        </li>
+      </ul>
+      <HamburgerMenu isOpen={isOpen} onClose={() => toggleMenu()} />
+    </footer>
+  );
 };
 
 export default BottomNav;
