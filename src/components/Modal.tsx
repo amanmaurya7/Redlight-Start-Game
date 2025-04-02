@@ -392,9 +392,7 @@ const downloadImage = async () => {
         // Fallback: If the download doesn't start, prompt the user
         if (document.hasFocus()) {
           // Assume download failed if the page still has focus
-          alert(
-
-          );
+          
           // Optionally trigger share as a backup
           if (liff.isApiAvailable("shareTargetPicker")) {
             liff.shareTargetPicker([
