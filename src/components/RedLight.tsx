@@ -6,7 +6,6 @@ import { useState, useEffect, useRef } from "react"
 import { Box, CircularProgress } from "@mui/material"
 import Modal from "./Modal"
 import BottomNav from "./BottomNav"
-import TapHereButton from "../images/start-button.svg"
 import Svg7 from "../images/7.svg" // Initial screen background image
 import logo from "../images/grandprix.svg"
 
@@ -16,14 +15,80 @@ import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4"
 import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4"
 import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3"
 
+const TapButton = ({ onClick, active = true }: { onClick?: () => void; active?: boolean }) => (
+  <Box
+    component="button"
+    onClick={active ? onClick : undefined}
+    sx={{
+      position: "absolute",
+      zIndex: 2,
+      background: "none",
+      border: "none",
+      padding: 0,
+      width: "120px",
+      height: "auto",
+      cursor: active ? "pointer" : "default",
+      bottom: "18%",
+      left: "50%",
+      transform: "translateX(-50%)",
+      opacity: active ? 1 : 0.3,
+      transition: "opacity 0.3s ease-in-out, transform 0.2s ease",
+      filter: active ? "brightness(1.1)" : "grayscale(0.7)",
+      willChange: "opacity",
+      "&:active": {
+        transform: active ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
+      },
+      "&:focus": {
+        outline: "none",
+      },
+      "@media screen and (max-width: 320px)": {
+        width: "100px",
+        bottom: "15%",
+      },
+      "@media screen and (max-height: 500px)": {
+        width: "100px",
+        bottom: "12%",
+      },
+      "@media screen and (max-height: 400px)": {
+        width: "80px",
+        bottom: "10%",
+      },
+    }}
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 119.266 129">
+      <g id="アクセルボタン" transform="translate(-253 -663)" style={{ isolation: "isolate" }}>
+        <path
+          id="Path_39"
+          data-name="Path 39"
+          d="M16.853,0h85.56c9.308,0,16.853,5.82,16.853,13V116c0,7.18-7.545,13-16.853,13H16.853c-9.308,0,11.411-16.692,11.411-23.872V80.138L0,13C0,5.82,7.545,0,16.853,0Z"
+          transform="translate(253 663)"
+          fill="#dd1c1c"
+          style={{ mixBlendMode: "multiply", isolation: "isolate" }}
+        />
+        <text
+          id="MISSION"
+          transform="translate(320.266 695)"
+          fill="#fff"
+          fontSize="20"
+          fontFamily="MyCustomFont"
+          letterSpacing="0.014em"
+        >
+          <tspan x="-20.419" y="8">TAP</tspan>
+          <tspan x="-30.761" y="32">HERE</tspan>
+        </text>
+      </g>
+    </svg>
+  </Box>
+);
+
 // Preload background image to ensure it's cached
 const preloadBackgroundImage = () => {
   // Add timestamp to prevent caching
-  const timestamp = new Date().getTime();
-  const img = new Image();
-  img.src = `${Svg7}?t=${timestamp}`;
-  return img;
-};
+  const timestamp = new Date().getTime()
+  const img = new Image()
+  img.src = `${Svg7}?t=${timestamp}`
+  return img
+}
 
 const japaneseFontStyle = {
   fontFamily: "'JapaneseFont', sans-serif",
@@ -164,160 +229,159 @@ const RedLight: React.FC = () => {
   const resultTimeoutRef = useRef<number | null>(null)
 
   // Add ref for the background image
-  const backgroundImageRef = useRef<HTMLImageElement | null>(null);
-  const componentMountedRef = useRef(true);
+  const backgroundImageRef = useRef<HTMLImageElement | null>(null)
+  const componentMountedRef = useRef(true)
 
   // Add state to track if this is a return visit
-  const [isReturnVisit, setIsReturnVisit] = useState(false);
-  
+  const [isReturnVisit, setIsReturnVisit] = useState(false)
+
   // Add timestamp for cache busting
-  const cacheBustTimestamp = useRef(Date.now());
+  const cacheBustTimestamp = useRef(Date.now())
 
   // Initialize and preload background image when component mounts
   // Also check for return visits
   useEffect(() => {
-    componentMountedRef.current = true;
-    
+    componentMountedRef.current = true
+
     // Check if this is a return visit using sessionStorage
-    const hasVisitedBefore = sessionStorage.getItem('hasVisitedGame');
-    if (hasVisitedBefore === 'true') {
-      setIsReturnVisit(true);
+    const hasVisitedBefore = sessionStorage.getItem("hasVisitedGame")
+    if (hasVisitedBefore === "true") {
+      setIsReturnVisit(true)
       // Update timestamp for fresh cache-busting
-      cacheBustTimestamp.current = Date.now();
+      cacheBustTimestamp.current = Date.now()
     } else {
-      sessionStorage.setItem('hasVisitedGame', 'true');
+      sessionStorage.setItem("hasVisitedGame", "true")
     }
-    
+
     // Preload the background image with cache-busting
-    backgroundImageRef.current = preloadBackgroundImage();
-    
+    backgroundImageRef.current = preloadBackgroundImage()
+
     // Add pageshow event listener to detect when page is shown after
     // navigating through browser history (like using back button)
     const handlePageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         // Page was restored from browser cache
         // Force a reload of the background image
-        cacheBustTimestamp.current = Date.now();
-        backgroundImageRef.current = preloadBackgroundImage();
-        
+        cacheBustTimestamp.current = Date.now()
+        backgroundImageRef.current = preloadBackgroundImage()
+
         // For particularly stubborn browsers, force a repaint
-        if (document.getElementById('game-container')) {
-          const container = document.getElementById('game-container');
+        if (document.getElementById("game-container")) {
+          const container = document.getElementById("game-container")
           if (container) {
-            container.style.display = 'none';
+            container.style.display = "none"
             setTimeout(() => {
-              container.style.display = 'flex';
-            }, 10);
+              container.style.display = "flex"
+            }, 10)
           }
         }
       }
-    };
-    
-    window.addEventListener('pageshow', handlePageShow);
-    
+    }
+
+    window.addEventListener("pageshow", handlePageShow)
+
     return () => {
-      componentMountedRef.current = false;
-      window.removeEventListener('pageshow', handlePageShow);
-    };
-  }, []);
+      componentMountedRef.current = false
+      window.removeEventListener("pageshow", handlePageShow)
+    }
+  }, [])
 
   // Ensure background is reloaded when returning to init state
   useEffect(() => {
     if (gameState === "init") {
       // Reload the background image with fresh timestamp
-      cacheBustTimestamp.current = Date.now();
-      backgroundImageRef.current = preloadBackgroundImage();
-      
+      cacheBustTimestamp.current = Date.now()
+      backgroundImageRef.current = preloadBackgroundImage()
+
       // Clear any previous failures
-      setVideoError(null);
+      setVideoError(null)
     }
-  }, [gameState]);
+  }, [gameState])
 
   // Force background reload if this is a return visit
   useEffect(() => {
     if (isReturnVisit && gameState === "init") {
       // Force immediate reload of background
       const forceReload = () => {
-        cacheBustTimestamp.current = Date.now();
-        backgroundImageRef.current = preloadBackgroundImage();
-        
+        cacheBustTimestamp.current = Date.now()
+        backgroundImageRef.current = preloadBackgroundImage()
+
         // Reset the page container to force repaint
-        const gameContainer = document.querySelector('.game-root-container');
+        const gameContainer = document.querySelector(".game-root-container")
         if (gameContainer) {
-          const display = (gameContainer as HTMLElement).style.display;
-          (gameContainer as HTMLElement).style.display = 'none';
-          
+          const display = (gameContainer as HTMLElement).style.display
+          ;(gameContainer as HTMLElement).style.display = "none"
+
           // Trigger browser reflow
-          void (gameContainer as HTMLElement).offsetHeight;
-          
-          (gameContainer as HTMLElement).style.display = display;
+          void (gameContainer as HTMLElement).offsetHeight
+          ;(gameContainer as HTMLElement).style.display = display
         }
-      };
-      
-      forceReload();
-      
+      }
+
+      forceReload()
+
       // Clear the return visit flag
-      setIsReturnVisit(false);
+      setIsReturnVisit(false)
     }
-  }, [isReturnVisit, gameState]);
+  }, [isReturnVisit, gameState])
 
   // Add robust cleanup for all video elements
   useEffect(() => {
     return () => {
       // Cleanup function that runs when component unmounts
       if (section1VideoRef.current) {
-        section1VideoRef.current.pause();
-        section1VideoRef.current.src = "";
-        section1VideoRef.current.load();
+        section1VideoRef.current.pause()
+        section1VideoRef.current.src = ""
+        section1VideoRef.current.load()
       }
       if (section2VideoRef.current) {
-        section2VideoRef.current.pause();
-        section2VideoRef.current.src = "";
-        section2VideoRef.current.load();
+        section2VideoRef.current.pause()
+        section2VideoRef.current.src = ""
+        section2VideoRef.current.load()
       }
       if (section3VideoRef.current) {
-        section3VideoRef.current.pause();
-        section3VideoRef.current.src = "";
-        section3VideoRef.current.load();
+        section3VideoRef.current.pause()
+        section3VideoRef.current.src = ""
+        section3VideoRef.current.load()
       }
       if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current.load();
+        audioRef.current.pause()
+        audioRef.current.src = ""
+        audioRef.current.load()
       }
-      
+
       // Clear any pending timeouts
       if (randomDelayTimeoutRef.current !== null) {
-        clearTimeout(randomDelayTimeoutRef.current);
+        clearTimeout(randomDelayTimeoutRef.current)
       }
       if (resultTimeoutRef.current !== null) {
-        clearTimeout(resultTimeoutRef.current);
+        clearTimeout(resultTimeoutRef.current)
       }
-    };
-  }, []);
+    }
+  }, [])
 
   // Preload all videos when component mounts or when returning to init state
   useEffect(() => {
     if (gameState === "init") {
       // Reset video elements
       if (section1VideoRef.current) {
-        section1VideoRef.current.src = Section1Video;
-        section1VideoRef.current.load();
+        section1VideoRef.current.src = Section1Video
+        section1VideoRef.current.load()
       }
       if (section2VideoRef.current) {
-        section2VideoRef.current.src = Section2Video;
-        section2VideoRef.current.load();
+        section2VideoRef.current.src = Section2Video
+        section2VideoRef.current.load()
       }
       if (section3VideoRef.current) {
-        section3VideoRef.current.src = Section3Video;
-        section3VideoRef.current.load();
+        section3VideoRef.current.src = Section3Video
+        section3VideoRef.current.load()
       }
       if (audioRef.current) {
-        audioRef.current.src = Section3Sound;
-        audioRef.current.load();
+        audioRef.current.src = Section3Sound
+        audioRef.current.load()
       }
     }
-  }, [gameState]);
+  }, [gameState])
 
   // Setup for Section 1 video - modified to use the gameState as a dependency
   useEffect(() => {
@@ -326,7 +390,7 @@ const RedLight: React.FC = () => {
       const section1Video = section1VideoRef.current
       if (section1Video) {
         section1Video.preload = "auto"
-        section1Video.src = Section1Video;
+        section1Video.src = Section1Video
 
         const handleCanPlayThrough = () => {
           if (componentMountedRef.current) {
@@ -437,8 +501,8 @@ const RedLight: React.FC = () => {
 
         // Random delay between 0.2 and 3 seconds before starting section 2
         const randomDelay = 200 + Math.random() * 2800
-        console.log(`Setting random delay of ${randomDelay.toFixed(2)}ms (${(randomDelay/1000).toFixed(2)}s)`)
-        
+        console.log(`Setting random delay of ${randomDelay.toFixed(2)}ms (${(randomDelay / 1000).toFixed(2)}s)`)
+
         randomDelayTimeoutRef.current = window.setTimeout(() => {
           console.log("Random delay completed, starting section 2")
           setGameState("section2")
@@ -647,7 +711,7 @@ const RedLight: React.FC = () => {
       }
 
       // Reset and reload all video elements with cache busting timestamp
-      const timestamp = Date.now();
+      const timestamp = Date.now()
       if (section1VideoRef.current) {
         section1VideoRef.current.pause()
         section1VideoRef.current.currentTime = 0
@@ -674,10 +738,10 @@ const RedLight: React.FC = () => {
         audioRef.current.src = `${Section3Sound}?t=${timestamp}`
         audioRef.current.load()
       }
-      
+
       // Update timestamp and reload background image
-      cacheBustTimestamp.current = timestamp;
-      backgroundImageRef.current = preloadBackgroundImage();
+      cacheBustTimestamp.current = timestamp
+      backgroundImageRef.current = preloadBackgroundImage()
     }, 50)
   }
 
@@ -809,12 +873,15 @@ const RedLight: React.FC = () => {
               alt="F1 Car"
               sx={{
                 height: "100%",
-                width: "100%", // Changed to 100% to fill screen edge-to-edge
-                objectFit: "cover", // Ensure image covers the full area
+                width: "100%", // Full width
+                objectFit: "cover", 
+                objectPosition: "center 40%", // Position car higher in the viewport (40% from top)
                 position: "absolute",
                 top: 0,
                 left: 0,
                 zIndex: 2,
+                // Adjust the scaling to show more of the car and less margin
+                transform: { xs: "scale(1)", sm: "scale(0.95)", md: "scale(0.9)" },
               }}
               // Force reload of image with timestamp to prevent caching
               key={`background-image-${cacheBustTimestamp.current}`}
@@ -824,15 +891,17 @@ const RedLight: React.FC = () => {
             <Box
               sx={{
                 position: "absolute",
-                bottom: "25%",
+                bottom: { xs: "15%", sm: "18%", md: "20%" }, // Position from bottom of screen
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
                 zIndex: 4,
-                opacity: 1, // No fade-out effect
+                opacity: 1,
                 fontFamily: "'MyCustomFont', sans-serif",
+                // Add padding to ensure content doesn't get too close to the bottom
+                paddingBottom: { xs: "20px", sm: "30px", md: "40px" },
               }}
             >
               {gameState === "loading" ? (
@@ -853,18 +922,19 @@ const RedLight: React.FC = () => {
                     sx={{
                       width: "80%",
                       maxWidth: "280px",
-                      height: "auto", // Changed from fixed height to auto
-                      padding: "12px 0", // Added padding instead of fixed height
+                      height: "auto",
+                      padding: "12px 0",
                       borderRadius: "24px",
                       backgroundColor: "#f5f6fa",
                       color: "#2f3640",
                       border: "none",
-                      fontSize: "16px",
+                      fontSize: "20px",
                       fontWeight: "bold",
                       cursor: gameState === "init" ? "pointer" : "default",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                       transition: "all 0.3s ease",
                       fontFamily: "'MyCustomFont', sans-serif",
+                      marginTop: "30px", // Add margin to ensure it's below the car
                       // Responsive styles for different screen sizes
                       "@media screen and (max-width: 768px)": {
                         maxWidth: "250px",
@@ -879,11 +949,13 @@ const RedLight: React.FC = () => {
                         maxWidth: "200px",
                         fontSize: "14px",
                         padding: "8px 0",
+                        marginTop: "10px", // Less margin on smaller screens
                       },
                       "@media screen and (max-height: 400px)": {
                         maxWidth: "180px",
                         fontSize: "13px",
                         padding: "6px 0",
+                        marginTop: "5px", // Even less margin on very small screens
                       },
                       "&:hover": {
                         backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
@@ -908,7 +980,7 @@ const RedLight: React.FC = () => {
                   >
                     START
                   </Box>
-                  
+
                   {/* Logo added below the start button with enhanced responsiveness */}
                   <Box
                     component="img"
@@ -919,6 +991,7 @@ const RedLight: React.FC = () => {
                       maxWidth: "50%",
                       height: "auto",
                       marginTop: "25px",
+                      marginBottom: { xs: "60px", sm: "70px", md: "80px" }, // Add bottom margin to ensure space from footer
                       filter: "brightness(1.2)",
                       // Responsive adjustments for different screen sizes and orientations
                       "@media screen and (max-width: 768px)": {
@@ -1007,75 +1080,9 @@ const RedLight: React.FC = () => {
           gameState === "waitingForDelay" ||
           gameState === "section2" ||
           gameState === "waitingForTap") && (
-          <Box
-            component="img"
-            src={TapHereButton}
-            alt="Tap Here"
-            sx={{
-              position: "absolute",
-              zIndex: 2,
-              width: "120px", // Default size
-              height: "auto",
-              cursor: buttonActive ? "pointer" : "default",
-              bottom: "18%",
-              left: "50%", // Center the button horizontally
-              transform: "translateX(-50%)", // Ensure proper centering
-              opacity: buttonActive ? 1 : 0.3, // More transparent when inactive
-              transition: "opacity 0.3s ease-in-out, transform 0.2s ease-in-out", // Added transform for tap effect
-              filter: buttonActive ? "brightness(1.1)" : "grayscale(0.7)", // Add grayscale filter when inactive
-              willChange: "opacity, transform",
-              // Added transform effect on hover/active when button is active
-              "&:hover": {
-                transform: buttonActive ? "translateX(-50%) scale(1.05)" : "translateX(-50%)",
-              },
-              "&:active": {
-                transform: buttonActive ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
-              },
-              // Enhanced responsive styles
-              "@media screen and (min-width: 769px)": {
-                width: "140px", // Larger on bigger screens
-                bottom: "20%",
-              },
-              "@media screen and (max-width: 480px)": {
-                width: "110px",
-                bottom: "16%",
-              },
-              "@media screen and (max-width: 360px)": {
-                width: "100px",
-                bottom: "15%",
-              },
-              "@media screen and (max-width: 320px)": {
-                width: "90px",
-                bottom: "14%",
-              },
-              // Height-based media queries
-              "@media screen and (max-height: 700px)": {
-                width: "110px",
-                bottom: "16%",
-              },
-              "@media screen and (max-height: 600px)": {
-                width: "100px",
-                bottom: "14%",
-              },
-              "@media screen and (max-height: 500px)": {
-                width: "90px",
-                bottom: "12%",
-              },
-              "@media screen and (max-height: 400px)": {
-                width: "80px",
-                bottom: "10%",
-              },
-              // Orientation specific adjustments
-              "@media screen and (max-height: 500px) and (orientation: landscape)": {
-                width: "85px",
-                bottom: "12%",
-              },
-              "@media screen and (max-height: 400px) and (orientation: landscape)": {
-                width: "75px",
-                bottom: "9%",
-              },
-            }}
+         <TapButton
             onClick={buttonActive ? handleTapClick : undefined}
+            active={buttonActive}
           />
         )}
 
@@ -1133,75 +1140,9 @@ const RedLight: React.FC = () => {
 
         {/* Tap button shown during Section 2 with enhanced responsiveness */}
         {(gameState === "section2" || gameState === "waitingForTap") && (
-          <Box
-            component="img"
-            src={TapHereButton}
-            alt="Tap Here"
-            sx={{
-              position: "absolute",
-              zIndex: 2,
-              width: "120px", // Default size
-              height: "auto",
-              cursor: buttonActive ? "pointer" : "default",
-              bottom: "18%",
-              left: "50%", // Center the button horizontally
-              transform: "translateX(-50%)", // Ensure proper centering
-              opacity: buttonActive ? 1 : 0.5,
-              transition: "opacity 0.3s ease-in-out, transform 0.2s ease-in-out", // Added transform for tap effect
-              filter: buttonActive ? "brightness(1.1)" : "none",
-              willChange: "opacity, transform",
-              // Added transform effect on hover/active when button is active
-              "&:hover": {
-                transform: buttonActive ? "translateX(-50%) scale(1.05)" : "translateX(-50%)",
-              },
-              "&:active": {
-                transform: buttonActive ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
-              },
-              // Enhanced responsive styles (same as the first tap button for consistency)
-              "@media screen and (min-width: 769px)": {
-                width: "140px", // Larger on bigger screens
-                bottom: "20%",
-              },
-              "@media screen and (max-width: 480px)": {
-                width: "110px",
-                bottom: "16%",
-              },
-              "@media screen and (max-width: 360px)": {
-                width: "100px",
-                bottom: "15%",
-              },
-              "@media screen and (max-width: 320px)": {
-                width: "90px",
-                bottom: "14%",
-              },
-              // Height-based media queries
-              "@media screen and (max-height: 700px)": {
-                width: "110px",
-                bottom: "16%",
-              },
-              "@media screen and (max-height: 600px)": {
-                width: "100px",
-                bottom: "14%",
-              },
-              "@media screen and (max-height: 500px)": {
-                width: "90px",
-                bottom: "12%",
-              },
-              "@media screen and (max-height: 400px)": {
-                width: "80px",
-                bottom: "10%",
-              },
-              // Orientation specific adjustments
-              "@media screen and (max-height: 500px) and (orientation: landscape)": {
-                width: "85px",
-                bottom: "12%",
-              },
-              "@media screen and (max-height: 400px) and (orientation: landscape)": {
-                width: "75px",
-                bottom: "9%",
-              },
-            }}
+          <TapButton
             onClick={buttonActive ? handleTapClick : undefined}
+            active={buttonActive}
           />
         )}
       </Box>
@@ -1231,17 +1172,17 @@ const RedLight: React.FC = () => {
         <Box
           component="h1"
           sx={{
-        color: "black",
-        fontSize: "1.6rem", // Match the text-[1.6rem]
-        margin: 0,
-        marginBottom: "6px", // Added gap between the two lines
-        letterSpacing: "1px",
-        fontWeight: "bold", // Changed from normal to bold
-        fontFamily: "'MyCustomFont', sans-serif",
-        "& .highlight-red": {
-          color: "#E00400", // Exact hex color from the example
-          fontWeight: 900, // Extra bold for highlighted characters
-        },
+            color: "black",
+            fontSize: "1.6rem", // Match the text-[1.6rem]
+            margin: 0,
+            marginBottom: "6px", // Added gap between the two lines
+            letterSpacing: "1px",
+            fontWeight: "bold", // Changed from normal to bold
+            fontFamily: "'MyCustomFont', sans-serif",
+            "& .highlight-red": {
+              color: "#E00400", // Exact hex color from the example
+              fontWeight: 900, // Extra bold for highlighted characters
+            },
           }}
         >
           <span className="highlight-red">R</span>EACTION TIME <span className="highlight-red">T</span>EST
@@ -1249,12 +1190,12 @@ const RedLight: React.FC = () => {
         <Box
           component="h2"
           sx={{
-        color: "black",
-        fontSize: "12px", // Match text-[12px]
-        margin: 0, // Removed the top margin since we added it to the element above
-        marginBottom: "5px", // Keep the bottom margin
-        fontWeight: 'bold', // Increased from 800 to 900 for maximum boldness
-        fontFamily: "'MyCustomFont', sans-serif",
+            color: "black",
+            fontSize: "12px", // Match text-[12px]
+            margin: 0, // Removed the top margin since we added it to the element above
+            marginBottom: "5px", // Keep the bottom margin
+            fontWeight: "bold", // Increased from 800 to 900 for maximum boldness
+            fontFamily: "'MyCustomFont', sans-serif",
           }}
         >
           リアクションタイムテスト
@@ -1276,6 +1217,7 @@ const RedLight: React.FC = () => {
       <BottomNav />
     </Box>
   )
+
 }
 
 export default RedLight
