@@ -6,10 +6,9 @@ import { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import Modal from "./Modal";
 import BottomNav from "./BottomNav";
-import Svg7 from "../images/7.svg"; // Initial screen background image
+import Svg7 from "../images/7.svg";
 import logo from "../images/grandprix.svg";
 
-// Import all three videos and sound
 import Section1Video from "../assets/F1_RTT_movie1.mp4";
 import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4";
 import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4";
@@ -44,21 +43,13 @@ const TapButton = ({
       "&:active": {
         transform: active ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
       },
-      "&:focus": {
-        outline: "none",
-      },
-      "@media screen and (max-width: 320px)": {
-        width: "100px",
-        bottom: "15%",
-      },
+      "&:focus": { outline: "none" },
+      "@media screen and (max-width: 320px)": { width: "100px", bottom: "15%" },
       "@media screen and (max-height: 500px)": {
         width: "100px",
         bottom: "12%",
       },
-      "@media screen and (max-height: 400px)": {
-        width: "80px",
-        bottom: "10%",
-      },
+      "@media screen and (max-height: 400px)": { width: "80px", bottom: "10%" },
     }}
   >
     <svg
@@ -100,7 +91,6 @@ const TapButton = ({
   </Box>
 );
 
-// Preload background image to ensure it's cached
 const preloadBackgroundImage = () => {
   const timestamp = new Date().getTime();
   const img = new Image();
@@ -108,9 +98,7 @@ const preloadBackgroundImage = () => {
   return img;
 };
 
-const japaneseFontStyle = {
-  fontFamily: 'JapaneseFont',
-};
+const japaneseFontStyle = { fontFamily: "JapaneseFont" };
 
 const MissionBanner = ({
   visible,
@@ -126,9 +114,7 @@ const MissionBanner = ({
       setOpacity(1);
       const timeoutId = setTimeout(() => {
         setOpacity(0);
-        setTimeout(() => {
-          if (onAnimationComplete) onAnimationComplete();
-        }, 500);
+        setTimeout(() => onAnimationComplete(), 500);
       }, 2000);
       return () => clearTimeout(timeoutId);
     } else {
@@ -150,7 +136,7 @@ const MissionBanner = ({
         background: "rgba(255, 255, 255, 0.95)",
         padding: "15px 0",
         zIndex: 10,
-        opacity: opacity,
+        opacity,
         transition: "opacity 0.5s ease",
         boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
         display: opacity === 0 ? "none" : "flex",
@@ -159,9 +145,7 @@ const MissionBanner = ({
         justifyContent: "center",
         textAlign: "center",
         fontFamily: "'MyCustomFont', sans-serif",
-        "@media screen and (max-height: 500px)": {
-          padding: "12px 0",
-        },
+        "@media screen and (max-height: 500px)": { padding: "12px 0" },
       }}
     >
       <Box
@@ -173,9 +157,7 @@ const MissionBanner = ({
           fontWeight: "bold",
           fontFamily: "'MyCustomFont', sans-serif",
           textAlign: "center",
-          "@media screen and (max-height: 500px)": {
-            fontSize: "16px",
-          },
+          "@media screen and (max-height: 500px)": { fontSize: "16px" },
         }}
       >
         MISSION
@@ -187,7 +169,6 @@ const MissionBanner = ({
           fontSize: "12px",
           margin: "8px 0 0",
           ...japaneseFontStyle,
-          fontFamily: "JapaneseFont",
           textAlign: "center",
           maxWidth: "90%",
           "@media screen and (max-height: 500px)": {
@@ -207,7 +188,6 @@ const RedLight: React.FC = () => {
     | "init"
     | "loading"
     | "missionIntro"
-    | "starting"
     | "section1"
     | "waitingForDelay"
     | "section2"
@@ -221,15 +201,14 @@ const RedLight: React.FC = () => {
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
-  const [, setVideoReady] = useState<{ [key: string]: boolean }>({
+  const [videoReady, setVideoReady] = useState<{ [key: string]: boolean }>({
     section1: false,
     section2: false,
     section3: false,
   });
   const [videoError, setVideoError] = useState<string | null>(null);
   const [showMissionBanner, setShowMissionBanner] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isVideoLoading, setIsVideoLoading] = useState(false); // Add new state for video loading
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
 
   const section1VideoRef = useRef<HTMLVideoElement>(null);
   const section2VideoRef = useRef<HTMLVideoElement>(null);
@@ -240,246 +219,128 @@ const RedLight: React.FC = () => {
   const resultTimeoutRef = useRef<number | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
   const componentMountedRef = useRef(true);
-  const [isReturnVisit, setIsReturnVisit] = useState(false);
   const cacheBustTimestamp = useRef(Date.now());
 
+  // Preload all videos on mount
   useEffect(() => {
     componentMountedRef.current = true;
-    const hasVisitedBefore = sessionStorage.getItem("hasVisitedGame");
-    if (hasVisitedBefore === "true") {
-      setIsReturnVisit(true);
-      cacheBustTimestamp.current = Date.now();
-    } else {
-      sessionStorage.setItem("hasVisitedGame", "true");
-    }
     backgroundImageRef.current = preloadBackgroundImage();
 
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        cacheBustTimestamp.current = Date.now();
-        backgroundImageRef.current = preloadBackgroundImage();
-        const container = document.getElementById("game-container");
-        if (container) {
-          container.style.display = "none";
-          setTimeout(() => {
-            container.style.display = "flex";
-          }, 10);
-        }
-      }
+    const preloadVideos = async () => {
+      const videos = [Section1Video, Section2Video, Section3Video];
+      const refs = [section1VideoRef, section2VideoRef, section3VideoRef];
+      const promises = videos.map((src, index) => {
+        return new Promise<void>((resolve, reject) => {
+          const video = refs[index].current;
+          if (video) {
+            video.src = `${src}?t=${cacheBustTimestamp.current}`;
+            video.preload = "auto";
+            video.onloadeddata = () => {
+              setVideoReady((prev) => ({
+                ...prev,
+                [`section${index + 1}`]: true,
+              }));
+              resolve();
+            };
+            video.onerror = () => {
+              setVideoError(`Failed to load video ${index + 1}.`);
+              reject();
+            };
+            video.load();
+          }
+        });
+      });
+      await Promise.all(promises);
     };
-    window.addEventListener("pageshow", handlePageShow);
+
+    preloadVideos();
 
     return () => {
       componentMountedRef.current = false;
-      window.removeEventListener("pageshow", handlePageShow);
+      if (randomDelayTimeoutRef.current)
+        clearTimeout(randomDelayTimeoutRef.current);
+      if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
     };
   }, []);
 
+  // Section 1 Logic
   useEffect(() => {
-    if (gameState === "init") {
-      cacheBustTimestamp.current = Date.now();
-      backgroundImageRef.current = preloadBackgroundImage();
-      setVideoError(null);
-    }
-  }, [gameState]);
-
-  useEffect(() => {
-    if (isReturnVisit && gameState === "init") {
-      cacheBustTimestamp.current = Date.now();
-      backgroundImageRef.current = preloadBackgroundImage();
-      const gameContainer = document.querySelector(".game-root-container");
-      if (gameContainer) {
-        const display = (gameContainer as HTMLElement).style.display;
-        (gameContainer as HTMLElement).style.display = "none";
-        void (gameContainer as HTMLElement).offsetHeight;
-        (gameContainer as HTMLElement).style.display = display;
-      }
-      setIsReturnVisit(false);
-    }
-  }, [isReturnVisit, gameState]);
-
-  useEffect(() => {
-    return () => {
-      [section1VideoRef, section2VideoRef, section3VideoRef].forEach((ref) => {
-        if (ref.current) {
-          ref.current.pause();
-          ref.current.src = "";
-          ref.current.load();
-        }
-      });
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
-        audioRef.current.load();
-      }
-      [randomDelayTimeoutRef, resultTimeoutRef].forEach((ref) => {
-        if (ref.current !== null) clearTimeout(ref.current);
-      });
-    };
-  }, []);
-
-  useEffect(() => {
-    if (gameState === "init") {
-      [section1VideoRef, section2VideoRef, section3VideoRef].forEach(
-        (ref, index) => {
-          if (ref.current) {
-            ref.current.src = [Section1Video, Section2Video, Section3Video][
-              index
-            ];
-            ref.current.load();
-          }
-        }
-      );
-      if (audioRef.current) {
-        audioRef.current.src = Section3Sound;
-        audioRef.current.load();
-      }
-    }
-  }, [gameState]);
-
-  useEffect(() => {
-    if (gameState === "init" && section1VideoRef.current) {
-      section1VideoRef.current.preload = "auto";
-      section1VideoRef.current.src = Section1Video;
-      const handleCanPlayThrough = () =>
-        componentMountedRef.current &&
-        setVideoReady((prev) => ({ ...prev, section1: true }));
-      const handleError = () =>
-        componentMountedRef.current &&
-        setVideoError("Failed to load initial video. Please try again.");
-      section1VideoRef.current.addEventListener(
-        "canplaythrough",
-        handleCanPlayThrough
-      );
-      section1VideoRef.current.addEventListener("error", handleError);
-      section1VideoRef.current.load();
-      return () => {
-        section1VideoRef.current?.removeEventListener(
-          "canplaythrough",
-          handleCanPlayThrough
-        );
-        section1VideoRef.current?.removeEventListener("error", handleError);
-      };
-    }
-  }, [gameState]);
-
-  useEffect(() => {
-    const ref = section2VideoRef.current;
-    if (ref) {
-      ref.preload = "auto";
-      const handleCanPlayThrough = () =>
-        setVideoReady((prev) => ({ ...prev, section2: true }));
-      const handleError = () =>
-        setVideoError("Failed to load button video. Please try again.");
-      ref.addEventListener("canplaythrough", handleCanPlayThrough);
-      ref.addEventListener("error", handleError);
-      ref.load();
-      return () => {
-        ref.removeEventListener("canplaythrough", handleCanPlayThrough);
-        ref.removeEventListener("error", handleError);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    const ref = section3VideoRef.current;
-    if (ref) {
-      ref.preload = "auto";
-      const handleCanPlayThrough = () =>
-        setVideoReady((prev) => ({ ...prev, section3: true }));
-      const handleError = () =>
-        setVideoError("Failed to load result video. Please try again.");
-      ref.addEventListener("canplaythrough", handleCanPlayThrough);
-      ref.addEventListener("error", handleError);
-      ref.load();
-      return () => {
-        ref.removeEventListener("canplaythrough", handleCanPlayThrough);
-        ref.removeEventListener("error", handleError);
-      };
-    }
-  }, []);
-
-  useEffect(() => {
-    if (gameState === "section1" && section1VideoRef.current) {
+    if (
+      gameState === "section1" &&
+      section1VideoRef.current &&
+      videoReady.section1
+    ) {
       section1VideoRef.current.currentTime = 0;
-      section1VideoRef.current.muted = false;
-      const playPromise = section1VideoRef.current.play();
-      if (playPromise) {
-        playPromise
-          .then(() => console.log("Section 1 video playing successfully"))
-          .catch((error) => {
-            if (error.name === "NotAllowedError") {
-              setVideoError("Video autoplay was blocked. Please try again.");
-              setGameState("init");
-            }
-          });
-      }
-      const handleVideoEnded = () => {
-        console.log("Section 1 video ended, applying random delay");
+      section1VideoRef.current
+        .play()
+        .then(() => {
+          // Preload Section 2
+          if (section2VideoRef.current) {
+            section2VideoRef.current.currentTime = 0;
+            section2VideoRef.current.load();
+          }
+        })
+        .catch(() => {
+          setVideoError("Error playing Section 1 video.");
+          setGameState("init");
+        });
+
+      const handleEnded = () => {
         setGameState("waitingForDelay");
         const randomDelay = 200 + Math.random() * 2800;
-        console.log(
-          `Setting random delay of ${randomDelay.toFixed(2)}ms (${(
-            randomDelay / 1000
-          ).toFixed(2)}s)`
-        );
         randomDelayTimeoutRef.current = window.setTimeout(() => {
-          console.log("Random delay completed, starting section 2");
           setGameState("section2");
         }, randomDelay);
       };
-      section1VideoRef.current.addEventListener("ended", handleVideoEnded);
+      section1VideoRef.current.addEventListener("ended", handleEnded);
       return () =>
-        section1VideoRef.current?.removeEventListener(
-          "ended",
-          handleVideoEnded
-        );
+        section1VideoRef.current?.removeEventListener("ended", handleEnded);
     }
-  }, [gameState]);
+  }, [gameState, videoReady.section1]);
 
+  // Section 2 Logic
   useEffect(() => {
-    if (gameState === "section2" && section2VideoRef.current) {
+    if (
+      gameState === "section2" &&
+      section2VideoRef.current &&
+      videoReady.section2
+    ) {
       section2VideoRef.current.currentTime = 0;
-      section2VideoRef.current.muted = false;
       setButtonActive(true);
       setReactionStartTime(Date.now());
-      const playPromise = section2VideoRef.current.play();
-      if (playPromise) {
-        playPromise
-          .then(() => console.log("Section 2 video playing successfully"))
-          .catch((error) => {
-            console.error("Error playing section 2 video:", error);
-            setVideoError("Error playing video. Please try again.");
-            setGameState("init");
-          });
-      }
-      const handleVideoEnded = () => {
-        console.log("Section 2 video ended, waiting for tap");
-        setGameState("waitingForTap");
-      };
-      section2VideoRef.current.addEventListener("ended", handleVideoEnded);
-      return () =>
-        section2VideoRef.current?.removeEventListener(
-          "ended",
-          handleVideoEnded
-        );
-    }
-  }, [gameState]);
+      section2VideoRef.current
+        .play()
+        .then(() => {
+          // Preload Section 3
+          if (section3VideoRef.current) {
+            section3VideoRef.current.currentTime = 0;
+            section3VideoRef.current.load();
+          }
+        })
+        .catch(() => {
+          setVideoError("Error playing Section 2 video.");
+          setGameState("init");
+        });
 
+      const handleEnded = () => setGameState("waitingForTap");
+      section2VideoRef.current.addEventListener("ended", handleEnded);
+      return () =>
+        section2VideoRef.current?.removeEventListener("ended", handleEnded);
+    }
+  }, [gameState, videoReady.section2]);
+
+  // Section 3 Logic
   useEffect(() => {
-    if (gameState === "section3" && section3VideoRef.current) {
+    if (
+      gameState === "section3" &&
+      section3VideoRef.current &&
+      videoReady.section3
+    ) {
       section3VideoRef.current.currentTime = 0;
-      section3VideoRef.current.muted = false;
-      const playPromise = section3VideoRef.current.play();
-      if (playPromise)
-        playPromise.catch((error) =>
-          console.error("Error playing section 3 video:", error)
-        );
+      section3VideoRef.current.play();
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        audioRef.current
-          .play()
-          .catch((error) => console.error("Error playing sound:", error));
+        audioRef.current.play();
       }
       resultTimeoutRef.current = window.setTimeout(() => {
         section3VideoRef.current?.pause();
@@ -487,103 +348,19 @@ const RedLight: React.FC = () => {
         setOpenModal(true);
       }, 1500);
       return () => {
-        if (resultTimeoutRef.current !== null)
-          clearTimeout(resultTimeoutRef.current);
+        if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
       };
     }
-  }, [gameState]);
-
-  useEffect(() => {
-    return () => {
-      if (randomDelayTimeoutRef.current !== null)
-        clearTimeout(randomDelayTimeoutRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    const stopAudioHandler = () =>
-      audioRef.current?.pause() && (audioRef.current.currentTime = 0);
-    document.addEventListener("stopGameAudio", stopAudioHandler);
-    if (gameState === "init" && audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    return () =>
-      document.removeEventListener("stopGameAudio", stopAudioHandler);
-  }, [gameState]);
+  }, [gameState, videoReady.section3]);
 
   const startGame = () => {
-    console.log("Start button clicked");
-    
-    // Show loading indicator
-    setIsVideoLoading(true);
-    
-    // Reset and ensure video is ready to be played
-    if (section1VideoRef.current) {
-      section1VideoRef.current.currentTime = 0;
-      
-      // Add event listener to know when video is ready
-      const handleVideoReady = () => {
-        console.log("Video is ready to play");
-        
-        // Remove the event listener
-        section1VideoRef.current?.removeEventListener('canplaythrough', handleVideoReady);
-        
-        // Hide loading indicator
-        setIsVideoLoading(false);
-        
-        // Show the video
-        if (section1VideoRef.current) {
-          section1VideoRef.current.style.display = "block";
-          section1VideoRef.current.style.opacity = "1";
-          section1VideoRef.current.pause();
-        }
-        
-        // Switch to mission intro state
-        setGameState("missionIntro");
-        
-        // Show mission banner
-        setTimeout(() => {
-          setShowMissionBanner(true);
-        }, 100);
-      };
-      
-      // Attach event listener for video ready state
-      section1VideoRef.current.addEventListener('canplaythrough', handleVideoReady);
-      
-      // Force reload the video to ensure fresh load
-      section1VideoRef.current.load();
-      
-      // Add a safety timeout in case the video takes too long to load
-      setTimeout(() => {
-        if (isVideoLoading) {
-          console.log("Video load timeout - proceeding anyway");
-          setIsVideoLoading(false);
-          setGameState("missionIntro");
-          
-          // Show video and mission banner
-          if (section1VideoRef.current) {
-            section1VideoRef.current.style.display = "block";
-            section1VideoRef.current.style.opacity = "1";
-            section1VideoRef.current.pause();
-          }
-          
-          setTimeout(() => {
-            setShowMissionBanner(true);
-          }, 100);
-          
-          // Remove the event listener if it's still attached
-          section1VideoRef.current?.removeEventListener('canplaythrough', handleVideoReady);
-        }
-      }, 5000); // 5 second safety timeout
-    } else {
-      // Fallback if video ref isn't available
-      setIsVideoLoading(false);
-      setGameState("missionIntro");
-      setTimeout(() => {
-        setShowMissionBanner(true);
-      }, 100);
+    if (!videoReady.section1 || !videoReady.section2 || !videoReady.section3) {
+      setIsVideoLoading(true);
+      return;
     }
+    setIsVideoLoading(false);
+    setGameState("missionIntro");
+    setTimeout(() => setShowMissionBanner(true), 100);
   };
 
   const handleMissionBannerComplete = () => {
@@ -614,13 +391,7 @@ const RedLight: React.FC = () => {
       setButtonActive(false);
       setVideoError(null);
       setShowMissionBanner(false);
-      setIsTransitioning(false);
-      if (startButtonRef.current) {
-        startButtonRef.current.blur();
-        startButtonRef.current.style.backgroundColor = "#f5f6fa";
-        startButtonRef.current.style.transform = "none";
-        startButtonRef.current.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-      }
+      setVideoReady({ section1: false, section2: false, section3: false });
       const timestamp = Date.now();
       [section1VideoRef, section2VideoRef, section3VideoRef].forEach(
         (ref, index) => {
@@ -644,45 +415,6 @@ const RedLight: React.FC = () => {
       backgroundImageRef.current = preloadBackgroundImage();
     }, 50);
   };
-
-  const preventDefaultTouchAction = (e: TouchEvent) => {
-    if (e.touches.length > 1) e.preventDefault();
-  };
-
-  useEffect(() => {
-    document.addEventListener("touchmove", preventDefaultTouchAction, {
-      passive: false,
-    });
-    const viewportMeta = document.querySelector('meta[name="viewport"]');
-    if (viewportMeta) {
-      viewportMeta.setAttribute(
-        "content",
-        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no"
-      );
-    } else {
-      const meta = document.createElement("meta");
-      meta.name = "viewport";
-      meta.content =
-        "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no";
-      document.head.appendChild(meta);
-    }
-    return () =>
-      document.removeEventListener("touchmove", preventDefaultTouchAction);
-  }, []);
-
-  useEffect(() => {
-    if (gameState === "init" && startButtonRef.current) {
-      startButtonRef.current.blur();
-      setTimeout(() => {
-        if (startButtonRef.current) {
-          startButtonRef.current.style.backgroundColor = "#f5f6fa";
-          startButtonRef.current.style.transform = "none";
-          startButtonRef.current.style.boxShadow =
-            "0 4px 6px rgba(0, 0, 0, 0.1)";
-        }
-      }, 50);
-    }
-  }, [gameState]);
 
   const getVideoVisibility = (
     videoType: "section1" | "section2" | "section3"
@@ -710,15 +442,14 @@ const RedLight: React.FC = () => {
         position: "fixed",
         top: 0,
         left: 0,
-        paddingBottom: "65px", // Add padding to make space for the footer
+        paddingBottom: "65px",
         margin: 0,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#242424",
+        backgroundColor: "#000", // Fallback background to mask gaps
         fontFamily: "'MyCustomFont', sans-serif",
         touchAction: "none",
       }}
-      onTouchMove={(e) => e.preventDefault()}
     >
       <Box
         sx={{
@@ -732,14 +463,13 @@ const RedLight: React.FC = () => {
           alignItems: "center",
           justifyContent: "space-between",
           flex: 1,
-          fontFamily: "'MyCustomFont', sans-serif",
           zIndex: 1,
+          backgroundColor: "#000", // Ensure no gaps
         }}
       >
         {(gameState === "init" ||
-          gameState === "starting" ||
           gameState === "loading" ||
-          isTransitioning) && (
+          isVideoLoading) && (
           <Box
             sx={{
               position: "absolute",
@@ -747,14 +477,11 @@ const RedLight: React.FC = () => {
               left: 0,
               width: "100%",
               height: "100%",
-              zIndex: isTransitioning ? 3 : 1,
-              opacity: 1,
+              zIndex: 1,
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              fontFamily: "'MyCustomFont', sans-serif",
-              key: `background-${cacheBustTimestamp.current}`,
             }}
           >
             <Box
@@ -776,7 +503,6 @@ const RedLight: React.FC = () => {
                   md: "scale(0.9)",
                 },
               }}
-              key={`background-image-${cacheBustTimestamp.current}`}
             />
             <Box
               sx={{
@@ -788,33 +514,22 @@ const RedLight: React.FC = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 zIndex: 4,
-                opacity: 1,
-                fontFamily: "'MyCustomFont', sans-serif",
                 paddingBottom: { xs: "10px", sm: "10px", md: "10px" },
                 marginTop: { xs: "0px", sm: "100px", md: "120px" },
               }}
             >
-              {gameState === "loading" || isVideoLoading ? (
+              {isVideoLoading ? (
                 <>
-                  <CircularProgress 
-                    sx={{ 
-                      color: "#E00400", // Red color to match F1 theme
-                      mb: 1,
-                      '& .MuiCircularProgress-circle': {
-                        strokeWidth: 5, // Slightly thicker progress circle
-                      }
-                    }} 
-                    size={50} 
-                  />
-                  <Box
+                  <CircularProgress
                     sx={{
-                      color: "white",
-                      fontSize: "16px",
-                      mt: 1,
-                      fontFamily: "'MyCustomFont', sans-serif",
+                      color: "#E00400",
+                      mb: 1,
+                      "& .MuiCircularProgress-circle": { strokeWidth: 5 },
                     }}
-                  >
-                    {isVideoLoading ? "Loading Game..." : "Loading..."}
+                    size={50}
+                  />
+                  <Box sx={{ color: "white", fontSize: "16px", mt: 1 }}>
+                    Loading Game...
                   </Box>
                 </>
               ) : (
@@ -822,13 +537,11 @@ const RedLight: React.FC = () => {
                   <Box
                     component="button"
                     ref={startButtonRef}
-                    onClick={gameState === "init" ? startGame : undefined}
-                    disabled={gameState !== "init"}
-                    className="start-button"
+                    onClick={startGame}
+                    disabled={gameState !== "init" || !videoReady.section1}
                     sx={{
                       width: "80%",
                       maxWidth: "300px",
-                      height: "auto",
                       padding: "12px 0",
                       borderRadius: "28px",
                       backgroundColor: "#f5f6fa",
@@ -836,57 +549,30 @@ const RedLight: React.FC = () => {
                       border: "none",
                       fontSize: "20px",
                       fontWeight: "bold",
-                      cursor: gameState === "init" ? "pointer" : "default",
+                      cursor:
+                        gameState === "init" && videoReady.section1
+                          ? "pointer"
+                          : "default",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                       transition: "all 0.3s ease",
-                      fontFamily: "'MyCustomFont', sans-serif",
-                      "@media screen and (max-width: 768px)": {
-                        maxWidth: "280px",
-                        fontSize: "20px",
-                      },
-                      "@media screen and (max-width: 480px)": {
-                        maxWidth: "260px",
-                        fontSize: "18px",
-                        padding: "14px 0",
-                      },
-                      "@media screen and (max-height: 500px)": {
-                        maxWidth: "240px",
-                        fontSize: "16px",
-                        padding: "10px 0",
-                      },
-                      "@media screen and (max-height: 400px)": {
-                        maxWidth: "200px",
-                        fontSize: "15px",
-                        padding: "8px 0",
-                      },
                       "&:hover": {
                         backgroundColor:
-                          gameState === "init" ? "#dcdde1" : "#f5f6fa",
+                          gameState === "init" && videoReady.section1
+                            ? "#dcdde1"
+                            : "#f5f6fa",
                         transform:
-                          gameState === "init" ? "translateY(-2px)" : "none",
-                        boxShadow:
-                          gameState === "init"
-                            ? "0 6px 8px rgba(0, 0, 0, 0.15)"
-                            : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                          gameState === "init" && videoReady.section1
+                            ? "translateY(-2px)"
+                            : "none",
                       },
                       "&:active": {
                         transform:
-                          gameState === "init" ? "translateY(1px)" : "none",
-                        boxShadow:
-                          gameState === "init"
-                            ? "0 2px 4px rgba(0, 0, 0, 0.1)"
-                            : "0 4px 6px rgba(0, 0, 0, 0.1)",
+                          gameState === "init" && videoReady.section1
+                            ? "translateY(1px)"
+                            : "none",
                       },
                       "&:focus": { outline: "none" },
-                      "&:not(:focus-visible)": {
-                        backgroundColor: "#f5f6fa !important",
-                        transform: "none !important",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1) !important",
-                      },
                     }}
-                    key={`start-button-${
-                      gameState === "init" ? "ready" : "disabled"
-                    }-${Date.now()}`}
                   >
                     START
                   </Box>
@@ -900,30 +586,6 @@ const RedLight: React.FC = () => {
                       height: "auto",
                       marginTop: "25px",
                       filter: "brightness(1.2)",
-                      "@media screen and (max-width: 768px)": {
-                        width: "160px",
-                        marginTop: "20px",
-                      },
-                      "@media screen and (max-width: 480px)": {
-                        width: "140px",
-                        marginTop: "18px",
-                      },
-                      "@media screen and (max-height: 600px)": {
-                        width: "150px",
-                        marginTop: "18px",
-                      },
-                      "@media screen and (max-height: 500px)": {
-                        width: "130px",
-                        marginTop: "14px",
-                      },
-                      "@media screen and (max-height: 400px)": {
-                        width: "110px",
-                        marginTop: "10px",
-                      },
-                      "@media screen and (max-height: 450px) and (orientation: landscape)":
-                        { width: "120px", marginTop: "12px" },
-                      "@media screen and (max-width: 320px), (max-height: 350px)":
-                        { width: "100px", marginTop: "8px" },
                     }}
                   />
                 </>
@@ -937,7 +599,6 @@ const RedLight: React.FC = () => {
                     borderRadius: "4px",
                     marginTop: "10px",
                     fontSize: "14px",
-                    fontFamily: "'MyCustomFont', sans-serif",
                   }}
                 >
                   {videoError}
@@ -965,21 +626,12 @@ const RedLight: React.FC = () => {
             objectFit: "cover",
             objectPosition: "center",
             zIndex: 1,
-            opacity: getVideoVisibility("section1") ? 1 : 0,
             display: getVideoVisibility("section1") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
-            backgroundColor: "black",
+            backgroundColor: "#000", // Prevent black flash
           }}
           playsInline
           preload="auto"
-          key={`video1-${cacheBustTimestamp.current}`}
-        >
-          <source
-            src={`${Section1Video}?t=${cacheBustTimestamp.current}`}
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+        />
 
         {(gameState === "section1" ||
           gameState === "waitingForDelay" ||
@@ -1000,24 +652,14 @@ const RedLight: React.FC = () => {
             width: "100vw",
             height: "100vh",
             objectFit: "cover",
-            objectPosition: "center center",
-            maxWidth: "none", // Remove max-width constraint
-            maxHeight: "none", // Remove max-height constraint
+            objectPosition: "center",
             zIndex: 1,
-            opacity: getVideoVisibility("section2") ? 1 : 0,
             display: getVideoVisibility("section2") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
+            backgroundColor: "#000",
           }}
           playsInline
           preload="auto"
-          key={`video2-${cacheBustTimestamp.current}`}
-        >
-          <source
-            src={`${Section2Video}?t=${cacheBustTimestamp.current}`}
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+        />
 
         <video
           ref={section3VideoRef}
@@ -1028,36 +670,16 @@ const RedLight: React.FC = () => {
             width: "100vw",
             height: "100vh",
             objectFit: "cover",
-            objectPosition: "center center",
-            maxWidth: "none", // Remove max-width constraint
-            maxHeight: "none", // Remove max-height constraint
+            objectPosition: "center",
             zIndex: 1,
-            opacity: getVideoVisibility("section3") ? 1 : 0,
             display: getVideoVisibility("section3") ? "block" : "none",
-            transition: "opacity 0.5s ease-in-out",
+            backgroundColor: "#000",
           }}
           playsInline
           preload="auto"
-          key={`video3-${cacheBustTimestamp.current}`}
-        >
-          <source
-            src={`${Section3Video}?t=${cacheBustTimestamp.current}`}
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+        />
 
-        <audio
-          ref={audioRef}
-          preload="auto"
-          key={`audio-${cacheBustTimestamp.current}`}
-        >
-          <source
-            src={`${Section3Sound}?t=${cacheBustTimestamp.current}`}
-            type="audio/mpeg"
-          />
-          Your browser does not support the audio element.
-        </audio>
+        <audio ref={audioRef} preload="auto" />
       </Box>
 
       <Box
@@ -1072,13 +694,11 @@ const RedLight: React.FC = () => {
           textAlign: "center",
           boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
           zIndex: 1000,
+          height: "65px",
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
           alignItems: "center",
-          height: "65px",
-          fontFamily: "'MyCustomFont', sans-serif",
-          transition: "all 1000ms ease-in-out",
         }}
       >
         <Box
@@ -1090,7 +710,6 @@ const RedLight: React.FC = () => {
             marginBottom: "6px",
             letterSpacing: "1px",
             fontWeight: "bold",
-            fontFamily: "'MyCustomFont', sans-serif",
             "& .highlight-red": { color: "#E00400", fontWeight: 900 },
           }}
         >
@@ -1108,7 +727,7 @@ const RedLight: React.FC = () => {
             fontFamily: "'Hiragino Kaku Gothic Pro Bold'",
           }}
         >
-          <span className=" ">リアクションタイムテスト</span>
+          リアクションタイムテスト
         </Box>
       </Box>
 
