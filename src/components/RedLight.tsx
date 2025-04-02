@@ -1119,7 +1119,7 @@ const RedLight: React.FC = () => {
         onRetry={handleRestartGame}
         onMap={() => {}}
       />
-      <BottomNav />
+{/*       <BottomNav /> */}
     </Box>
   );
 };
