@@ -921,41 +921,43 @@ const RedLight: React.FC = () => {
                     className="start-button"
                     sx={{
                       width: "80%",
-                      maxWidth: "280px",
+                      maxWidth: "300px", // Increased from 280px
                       height: "auto",
-                      padding: "12px 0",
-                      borderRadius: "24px",
+                      padding: "12px 0", // Increased from 12px
+                      borderRadius: "28px", // Increased from 24px
                       backgroundColor: "#f5f6fa",
                       color: "#2f3640",
                       border: "none",
-                      fontSize: "20px",
+                      fontSize: "20px", // Increased from 20px
                       fontWeight: "bold",
                       cursor: gameState === "init" ? "pointer" : "default",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                       transition: "all 0.3s ease",
                       fontFamily: "'MyCustomFont', sans-serif",
-                      marginTop: "30px", // Add margin to ensure it's below the car
+                      marginTop: "80px", // Increased from 40px to add more top margin
                       // Responsive styles for different screen sizes
                       "@media screen and (max-width: 768px)": {
-                        maxWidth: "250px",
-                        fontSize: "15px",
+                        maxWidth: "280px", // Increased from 250px
+                        fontSize: "20px", // Increased from 15px
+                        marginTop: "65px", // Added responsive margin
                       },
                       "@media screen and (max-width: 480px)": {
-                        maxWidth: "220px",
-                        fontSize: "14px",
-                        padding: "10px 0",
+                        maxWidth: "260px", // Increased from 220px
+                        fontSize: "18px", // Increased from 14px
+                        padding: "14px 0", // Increased from 10px
+                        marginTop: "50px", // Added responsive margin
                       },
                       "@media screen and (max-height: 500px)": {
-                        maxWidth: "200px",
-                        fontSize: "14px",
-                        padding: "8px 0",
-                        marginTop: "10px", // Less margin on smaller screens
+                        maxWidth: "240px", // Increased from 200px
+                        fontSize: "16px", // Increased from 14px
+                        padding: "10px 0", // Increased from 8px
+                        marginTop: "20px", // Kept smaller margin for shorter screens
                       },
                       "@media screen and (max-height: 400px)": {
-                        maxWidth: "180px",
-                        fontSize: "13px",
-                        padding: "6px 0",
-                        marginTop: "5px", // Even less margin on very small screens
+                        maxWidth: "200px", // Increased from 180px
+                        fontSize: "15px", // Increased from 13px
+                        padding: "8px 0", // Increased from 6px
+                        marginTop: "15px", // Kept smaller margin for very short screens
                       },
                       "&:hover": {
                         backgroundColor: gameState === "init" ? "#dcdde1" : "#f5f6fa",
