@@ -530,11 +530,7 @@ const RedLight: React.FC = () => {
                 top: 0,
                 left: 0,
                 zIndex: 2,
-                transform: {
-                  xs: "scale(1)!important",
-                  sm: "scale(1)!important",
-                  md: "scale(1)!important",
-                },
+                transform: "scale(1)",
               }}
             />
             <Box
