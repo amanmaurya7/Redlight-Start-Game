@@ -532,8 +532,8 @@ const RedLight: React.FC = () => {
                 zIndex: 2,
                 transform: {
                   xs: "scale(1)",
-                  sm: "scale(0.95)",
-                  md: "scale(0.9)",
+                  sm: "scale(1)",
+                  md: "scale(1)",
                 },
               }}
             />
