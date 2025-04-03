@@ -5,7 +5,7 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import Modal from "./Modal";
-// import BottomNav from "./BottomNav";
+import BottomNav from "./BottomNav";
 import Svg7 from "../images/7.svg";
 import logo from "../images/grandprix.svg";
 
@@ -292,9 +292,9 @@ const RedLight: React.FC = () => {
           setGameState("section2");
         }, randomDelay);
       };
-      section1VideoRef.current.addEventListener("ended", handleEnded);
-      return () =>
-        section1VideoRef.current?.removeEventListener("ended", handleEnded);
+      const videoElement = section1VideoRef.current;
+      videoElement?.addEventListener("ended", handleEnded);
+      return () => videoElement?.removeEventListener("ended", handleEnded);
     }
   }, [gameState, videoReady.section1]);
 
@@ -354,22 +354,31 @@ const RedLight: React.FC = () => {
   }, [gameState, videoReady.section3]);
 
   useEffect(() => {
-    // Preload all videos at the start
-    [section1VideoRef, section2VideoRef, section3VideoRef].forEach(
-      (ref, index) => {
-        if (ref.current) {
-          ref.current.preload = "auto";
-          ref.current.src = [
-            "/reaction/F1_RTT_movie1.mp4",
-            "/reaction/F1_RTT_movie_when_button_appear.mp4",
-            "/reaction/F1_RTT_movie_after_user_tap_movOnly.mp4",
-          ][index];
-          ref.current.load();
+    const handleTimeUpdate = () => {
+      if (
+        section1VideoRef.current &&
+        section1VideoRef.current.currentTime >=
+          section1VideoRef.current.duration - 1
+      ) {
+        // Preload the next video
+        if (section2VideoRef.current) {
+          section2VideoRef.current.preload = "auto";
+          section2VideoRef.current.load();
         }
       }
-    );
-  }, []);
+    };
 
+    const videoElement = section1VideoRef.current;
+    if (videoElement) {
+      videoElement.addEventListener("timeupdate", handleTimeUpdate);
+    }
+
+    return () => {
+      if (videoElement) {
+        videoElement.removeEventListener("timeupdate", handleTimeUpdate);
+      }
+    };
+  }, []);
   const startGame = () => {
     if (!videoReady.section1 || !videoReady.section2 || !videoReady.section3) {
       setIsVideoLoading(true);
