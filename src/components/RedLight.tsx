@@ -41,7 +41,7 @@ const TapButton = ({
       filter: active ? "brightness(1.1)" : "grayscale(0.7)",
       willChange: "opacity",
       "&:active": {
-        transform: active ? "translateX(-50%) scale(1)" : "translateX(-50%)",
+        transform: active ? "translateX(-50%) scale(0.95)" : "translateX(-50%)",
       },
       "&:focus": { outline: "none" },
       "@media screen and (max-width: 320px)": { width: "100px", bottom: "15%" },
@@ -531,9 +531,9 @@ const RedLight: React.FC = () => {
                 left: 0,
                 zIndex: 2,
                 transform: {
-                  xs: "scale(1)",
-                  sm: "scale(1)",
-                  md: "scale(1)",
+                  xs: "scale(1) !important",
+                  sm: "scale(1) !important",
+                  md: "scale(1) !important",
                 },
               }}
             />
