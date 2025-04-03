@@ -5,13 +5,9 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import Modal from "./Modal";
-// import BottomNav from "./BottomNav";
 import Svg7 from "../images/7.svg";
 import logo from "../images/grandprix.svg";
-
-import Section1Video from "../assets/F1_RTT_movie1.mp4";
-import Section2Video from "../assets/F1_RTT_movie_when_button_appear.mp4";
-import Section3Video from "../assets/F1_RTT_movie_after_user_tap_movOnly.mp4";
+import FullReactionVideo from "../assets/f1_new.mp4"; // Replace with your single video file
 import Section3Sound from "../assets/F1_RTT_movie_after_user_tap_sound.mp3";
 
 const TapButton = ({
@@ -45,11 +41,6 @@ const TapButton = ({
       },
       "&:focus": { outline: "none" },
       "@media screen and (max-width: 320px)": { width: "100px", bottom: "15%" },
-      "@media screen and (max-height: 500px)": {
-        width: "100px",
-        bottom: "12%",
-      },
-      "@media screen and (max-height: 400px)": { width: "80px", bottom: "10%" },
     }}
   >
     <svg
@@ -58,21 +49,14 @@ const TapButton = ({
       height="100%"
       viewBox="0 0 119.266 129"
     >
-      <g
-        id="アクセルボタン"
-        transform="translate(-253 -663)"
-        style={{ isolation: "isolate" }}
-      >
+      <g transform="translate(-253 -663)" style={{ isolation: "isolate" }}>
         <path
-          id="Path_39"
-          data-name="Path 39"
           d="M16.853,0h85.56c9.308,0,16.853,5.82,16.853,13V116c0,7.18-7.545,13-16.853,13H16.853c-9.308,0,11.411-16.692,11.411-23.872V80.138L0,13C0,5.82,7.545,0,16.853,0Z"
           transform="translate(253 663)"
           fill="#dd1c1c"
           style={{ mixBlendMode: "multiply", isolation: "isolate" }}
         />
         <text
-          id="MISSION"
           transform="translate(320.266 695)"
           fill="#fff"
           fontSize="20"
@@ -144,8 +128,6 @@ const MissionBanner = ({
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
-        fontFamily: "'MyCustomFont', sans-serif",
-        "@media screen and (max-height: 500px)": { padding: "12px 0" },
       }}
     >
       <Box
@@ -156,8 +138,6 @@ const MissionBanner = ({
           margin: 0,
           fontWeight: "bold",
           fontFamily: "'MyCustomFont', sans-serif",
-          textAlign: "center",
-          "@media screen and (max-height: 500px)": { fontSize: "16px" },
         }}
       >
         MISSION
@@ -169,12 +149,7 @@ const MissionBanner = ({
           fontSize: "12px",
           margin: "8px 0 0",
           ...japaneseFontStyle,
-          textAlign: "center",
           maxWidth: "90%",
-          "@media screen and (max-height: 500px)": {
-            fontSize: "13px",
-            marginTop: "6px",
-          },
         }}
       >
         ライトが消えたらアクセルを踏んで発進しよう！
@@ -185,15 +160,7 @@ const MissionBanner = ({
 
 const RedLight: React.FC = () => {
   const [gameState, setGameState] = useState<
-    | "init"
-    | "loading"
-    | "missionIntro"
-    | "section1"
-    | "waitingForDelay"
-    | "section2"
-    | "waitingForTap"
-    | "section3"
-    | "results"
+    "init" | "missionIntro" | "playing" | "waitingForTap" | "results"
   >("init");
   const [reactionStartTime, setReactionStartTime] = useState<number | null>(
     null
@@ -201,193 +168,76 @@ const RedLight: React.FC = () => {
   const [reactionTime, setReactionTime] = useState<number | null>(null);
   const [openModal, setOpenModal] = useState(false);
   const [buttonActive, setButtonActive] = useState(false);
-  const [videoReady, setVideoReady] = useState<{ [key: string]: boolean }>({
-    section1: false,
-    section2: false,
-    section3: false,
-  });
+  const [videoReady, setVideoReady] = useState(false);
   const [videoError, setVideoError] = useState<string | null>(null);
   const [showMissionBanner, setShowMissionBanner] = useState(false);
   const [isVideoLoading, setIsVideoLoading] = useState(false);
 
-  const section1VideoRef = useRef<HTMLVideoElement>(null);
-  const section2VideoRef = useRef<HTMLVideoElement>(null);
-  const section3VideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const startButtonRef = useRef<HTMLButtonElement>(null);
-  const randomDelayTimeoutRef = useRef<number | null>(null);
-  const resultTimeoutRef = useRef<number | null>(null);
   const backgroundImageRef = useRef<HTMLImageElement | null>(null);
-  const componentMountedRef = useRef(true);
   const cacheBustTimestamp = useRef(Date.now());
 
-  // Preload all videos on mount
+  const BUTTON_ENABLE_TIME = 5.2; // Time in seconds when button should be enabled
+
   useEffect(() => {
-    componentMountedRef.current = true;
     backgroundImageRef.current = preloadBackgroundImage();
 
-    const preloadVideos = async () => {
-      const videos = [Section1Video, Section2Video, Section3Video];
-      const refs = [section1VideoRef, section2VideoRef, section3VideoRef];
-      const promises = videos.map((src, index) => {
-        return new Promise<void>((resolve, reject) => {
-          const video = refs[index].current;
-          if (video) {
-            video.src = `${src}?t=${cacheBustTimestamp.current}`;
-            video.preload = "auto";
-            video.onloadeddata = () => {
-              setVideoReady((prev) => ({
-                ...prev,
-                [`section${index + 1}`]: true,
-              }));
-              resolve();
-            };
-            video.onerror = () => {
-              setVideoError(`Failed to load video ${index + 1}.`);
-              reject();
-            };
-            video.load();
-          }
-        });
-      });
-      await Promise.all(promises);
+    const preloadVideo = () => {
+      if (videoRef.current) {
+        videoRef.current.src = `${FullReactionVideo}?t=${cacheBustTimestamp.current}`;
+        videoRef.current.preload = "auto";
+        videoRef.current.onloadeddata = () => setVideoReady(true);
+        videoRef.current.onerror = () => setVideoError("Failed to load video.");
+        videoRef.current.load();
+      }
     };
 
-    preloadVideos();
+    preloadVideo();
 
     return () => {
-      componentMountedRef.current = false;
-      if (randomDelayTimeoutRef.current)
-        clearTimeout(randomDelayTimeoutRef.current);
-      if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
-    };
-  }, []);
-
-  // Section 1 Logic
-  useEffect(() => {
-    if (
-      gameState === "section1" &&
-      section1VideoRef.current &&
-      videoReady.section1
-    ) {
-      section1VideoRef.current.currentTime = 0;
-      section1VideoRef.current
-        .play()
-        .then(() => {
-          // Preload Section 2
-          if (section2VideoRef.current) {
-            section2VideoRef.current.currentTime = 0;
-            section2VideoRef.current.load();
-          }
-        })
-        .catch(() => {
-          setVideoError("Error playing Section 1 video.");
-          setGameState("init");
-        });
-
-      const handleEnded = () => {
-        // Set the video to the last frame to prevent black screen
-        if (section1VideoRef.current) {
-          section1VideoRef.current.currentTime =
-            section1VideoRef.current.duration - 0.01; // Go to just before the end
-          section1VideoRef.current.pause();
-        }
-        setGameState("waitingForDelay");
-        const randomDelay = 200 + Math.random() * 2800;
-        randomDelayTimeoutRef.current = window.setTimeout(() => {
-          setGameState("section2");
-        }, randomDelay);
-      };
-      const videoElement = section1VideoRef.current;
-      videoElement?.addEventListener("ended", handleEnded);
-      return () => videoElement?.removeEventListener("ended", handleEnded);
-    }
-  }, [gameState, videoReady.section1]);
-
-  // Section 2 Logic
-  useEffect(() => {
-    if (
-      gameState === "section2" &&
-      section2VideoRef.current &&
-      videoReady.section2
-    ) {
-      section2VideoRef.current.currentTime = 0;
-      setButtonActive(true);
-      setReactionStartTime(Date.now());
-      section2VideoRef.current
-        .play()
-        .then(() => {
-          // Preload Section 3
-          if (section3VideoRef.current) {
-            section3VideoRef.current.currentTime = 0;
-            section3VideoRef.current.load();
-          }
-        })
-        .catch(() => {
-          setVideoError("Error playing Section 2 video.");
-          setGameState("init");
-        });
-
-      const handleEnded = () => setGameState("waitingForTap");
-      section2VideoRef.current.addEventListener("ended", handleEnded);
-      return () =>
-        section2VideoRef.current?.removeEventListener("ended", handleEnded);
-    }
-  }, [gameState, videoReady.section2]);
-
-  // Section 3 Logic
-  useEffect(() => {
-    if (
-      gameState === "section3" &&
-      section3VideoRef.current &&
-      videoReady.section3
-    ) {
-      section3VideoRef.current.currentTime = 0;
-      section3VideoRef.current.play();
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.src = "";
+        videoRef.current.load();
+      }
       if (audioRef.current) {
-        audioRef.current.currentTime = 0;
-        audioRef.current.play();
-      }
-      resultTimeoutRef.current = window.setTimeout(() => {
-        section3VideoRef.current?.pause();
-        setGameState("results");
-        setOpenModal(true);
-      }, 1500);
-      return () => {
-        if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
-      };
-    }
-  }, [gameState, videoReady.section3]);
-
-  useEffect(() => {
-    const handleTimeUpdate = () => {
-      if (
-        section1VideoRef.current &&
-        section1VideoRef.current.currentTime >=
-          section1VideoRef.current.duration - 1
-      ) {
-        // Preload the next video
-        if (section2VideoRef.current) {
-          section2VideoRef.current.preload = "auto";
-          section2VideoRef.current.load();
-        }
-      }
-    };
-
-    const videoElement = section1VideoRef.current;
-    if (videoElement) {
-      videoElement.addEventListener("timeupdate", handleTimeUpdate);
-    }
-
-    return () => {
-      if (videoElement) {
-        videoElement.removeEventListener("timeupdate", handleTimeUpdate);
+        audioRef.current.pause();
+        audioRef.current.src = "";
+        audioRef.current.load();
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState === "playing" && videoRef.current && videoReady) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {
+        setVideoError("Error playing video.");
+        setGameState("init");
+      });
+
+      const handleTimeUpdate = () => {
+        if (
+          videoRef.current &&
+          videoRef.current.currentTime >= BUTTON_ENABLE_TIME
+        ) {
+          videoRef.current.pause();
+          setButtonActive(true);
+          setReactionStartTime(Date.now());
+          setGameState("waitingForTap");
+        }
+      };
+
+      videoRef.current.addEventListener("timeupdate", handleTimeUpdate);
+      return () =>
+        videoRef.current?.removeEventListener("timeupdate", handleTimeUpdate);
+    }
+  }, [gameState, videoReady]);
 
   const startGame = () => {
-    if (!videoReady.section1 || !videoReady.section2 || !videoReady.section3) {
+    if (!videoReady) {
       setIsVideoLoading(true);
       return;
     }
@@ -398,20 +248,26 @@ const RedLight: React.FC = () => {
 
   const handleMissionBannerComplete = () => {
     setShowMissionBanner(false);
-    setGameState("section1");
+    setGameState("playing");
   };
 
   const handleTapClick = () => {
-    if (
-      (gameState === "section2" || gameState === "waitingForTap") &&
-      buttonActive &&
-      reactionStartTime
-    ) {
+    if (gameState === "waitingForTap" && buttonActive && reactionStartTime) {
       const timeDiff = Date.now() - reactionStartTime;
       setReactionTime(timeDiff);
       setButtonActive(false);
-      section2VideoRef.current?.pause();
-      setGameState("section3");
+      if (videoRef.current) {
+        videoRef.current.play();
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play();
+        }
+        setTimeout(() => {
+          videoRef.current?.pause();
+          setGameState("results");
+          setOpenModal(true);
+        }, 1500);
+      }
     }
   };
 
@@ -424,20 +280,14 @@ const RedLight: React.FC = () => {
       setButtonActive(false);
       setVideoError(null);
       setShowMissionBanner(false);
-      setVideoReady({ section1: false, section2: false, section3: false });
+      setVideoReady(false);
       const timestamp = Date.now();
-      [section1VideoRef, section2VideoRef, section3VideoRef].forEach(
-        (ref, index) => {
-          if (ref.current) {
-            ref.current.pause();
-            ref.current.currentTime = 0;
-            ref.current.src =
-              [Section1Video, Section2Video, Section3Video][index] +
-              `?t=${timestamp}`;
-            ref.current.load();
-          }
-        }
-      );
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = 0;
+        videoRef.current.src = `${FullReactionVideo}?t=${timestamp}`;
+        videoRef.current.load();
+      }
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -447,21 +297,6 @@ const RedLight: React.FC = () => {
       cacheBustTimestamp.current = timestamp;
       backgroundImageRef.current = preloadBackgroundImage();
     }, 50);
-  };
-
-  const getVideoVisibility = (
-    videoType: "section1" | "section2" | "section3"
-  ) => {
-    return (
-      {
-        section1:
-          gameState === "missionIntro" ||
-          gameState === "section1" ||
-          gameState === "waitingForDelay",
-        section2: gameState === "section2" || gameState === "waitingForTap",
-        section3: gameState === "section3" || gameState === "results",
-      }[videoType] || false
-    );
   };
 
   return (
@@ -479,7 +314,7 @@ const RedLight: React.FC = () => {
         margin: 0,
         display: "flex",
         flexDirection: "column",
-        backgroundColor: "#000", // Fallback background to mask gaps
+        backgroundColor: "#000",
         fontFamily: "'MyCustomFont', sans-serif",
         touchAction: "none",
       }}
@@ -497,12 +332,10 @@ const RedLight: React.FC = () => {
           justifyContent: "space-between",
           flex: 1,
           zIndex: 1,
-          backgroundColor: "#000", // Ensure no gaps
+          backgroundColor: "#000",
         }}
       >
-        {(gameState === "init" ||
-          gameState === "loading" ||
-          isVideoLoading) && (
+        {(gameState === "init" || isVideoLoading) && (
           <Box
             sx={{
               position: "absolute",
@@ -536,25 +369,19 @@ const RedLight: React.FC = () => {
             <Box
               sx={{
                 position: "absolute",
-                bottom: { xs: "15%", sm: "18%", md: "20%" },
+                bottom: "15%",
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
                 zIndex: 4,
-                paddingBottom: { xs: "10px", sm: "10px", md: "10px" },
-                marginTop: { xs: "0px", sm: "100px", md: "120px" },
               }}
             >
               {isVideoLoading ? (
                 <>
                   <CircularProgress
-                    sx={{
-                      color: "#E00400",
-                      mb: 1,
-                      "& .MuiCircularProgress-circle": { strokeWidth: 5 },
-                    }}
+                    sx={{ color: "#E00400", mb: 1 }}
                     size={50}
                   />
                   <Box sx={{ color: "white", fontSize: "16px", mt: 1 }}>
@@ -567,7 +394,7 @@ const RedLight: React.FC = () => {
                     component="button"
                     ref={startButtonRef}
                     onClick={startGame}
-                    disabled={gameState !== "init" || !videoReady.section1}
+                    disabled={gameState !== "init" || !videoReady}
                     sx={{
                       width: "80%",
                       maxWidth: "300px",
@@ -579,28 +406,21 @@ const RedLight: React.FC = () => {
                       fontSize: "20px",
                       fontWeight: "bold",
                       cursor:
-                        gameState === "init" && videoReady.section1
+                        gameState === "init" && videoReady
                           ? "pointer"
                           : "default",
                       boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
                       transition: "all 0.3s ease",
                       "&:hover": {
                         backgroundColor:
-                          gameState === "init" && videoReady.section1
+                          gameState === "init" && videoReady
                             ? "#dcdde1"
                             : "#f5f6fa",
                         transform:
-                          gameState === "init" && videoReady.section1
+                          gameState === "init" && videoReady
                             ? "translateY(-2px)"
                             : "none",
                       },
-                      "&:active": {
-                        transform:
-                          gameState === "init" && videoReady.section1
-                            ? "translateY(1px)"
-                            : "none",
-                      },
-                      "&:focus": { outline: "none" },
                     }}
                   >
                     START
@@ -614,7 +434,6 @@ const RedLight: React.FC = () => {
                       maxWidth: "50%",
                       height: "auto",
                       marginTop: "25px",
-                      filter: "brightness(1.2)",
                     }}
                   />
                 </>
@@ -645,7 +464,7 @@ const RedLight: React.FC = () => {
         )}
 
         <video
-          ref={section1VideoRef}
+          ref={videoRef}
           style={{
             position: "absolute",
             top: 0,
@@ -655,58 +474,19 @@ const RedLight: React.FC = () => {
             objectFit: "cover",
             objectPosition: "center",
             zIndex: 1,
-            display: getVideoVisibility("section1") ? "block" : "none",
-            backgroundColor: "#000", // Prevent black flash
+            display: gameState !== "init" && !isVideoLoading ? "block" : "none",
+            backgroundColor: "#000",
           }}
           playsInline
           preload="auto"
         />
 
-        {(gameState === "section1" ||
-          gameState === "waitingForDelay" ||
-          gameState === "section2" ||
-          gameState === "waitingForTap") && (
+        {(gameState === "playing" || gameState === "waitingForTap") && (
           <TapButton
             onClick={buttonActive ? handleTapClick : undefined}
             active={buttonActive}
           />
         )}
-
-        <video
-          ref={section2VideoRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            objectFit: "cover",
-            objectPosition: "center",
-            zIndex: 1,
-            display: getVideoVisibility("section2") ? "block" : "none",
-            backgroundColor: "#000",
-          }}
-          playsInline
-          preload="auto"
-        />
-
-        <video
-          ref={section3VideoRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            objectFit: "cover",
-            objectPosition: "center",
-            zIndex: 1,
-            display: getVideoVisibility("section3") ? "block" : "none",
-            backgroundColor: "#000",
-          }}
-          playsInline
-          preload="auto"
-        />
 
         <audio ref={audioRef} preload="auto" />
       </Box>
@@ -767,8 +547,6 @@ const RedLight: React.FC = () => {
         onRetry={handleRestartGame}
         onMap={() => {}}
       />
-      {/* Uncomment if you want to include BottomNav */}
-      {/* <BottomNav /> */}
     </Box>
   );
 };
