@@ -5,7 +5,7 @@ import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import Modal from "./Modal";
-import BottomNav from "./BottomNav";
+// import BottomNav from "./BottomNav";
 import Svg7 from "../images/7.svg";
 import logo from "../images/grandprix.svg";
 
@@ -286,6 +286,12 @@ const RedLight: React.FC = () => {
         });
 
       const handleEnded = () => {
+        // Set the video to the last frame to prevent black screen
+        if (section1VideoRef.current) {
+          section1VideoRef.current.currentTime =
+            section1VideoRef.current.duration - 0.01; // Go to just before the end
+          section1VideoRef.current.pause();
+        }
         setGameState("waitingForDelay");
         const randomDelay = 200 + Math.random() * 2800;
         randomDelayTimeoutRef.current = window.setTimeout(() => {
@@ -379,6 +385,7 @@ const RedLight: React.FC = () => {
       }
     };
   }, []);
+
   const startGame = () => {
     if (!videoReady.section1 || !videoReady.section2 || !videoReady.section3) {
       setIsVideoLoading(true);
@@ -764,7 +771,8 @@ const RedLight: React.FC = () => {
         onRetry={handleRestartGame}
         onMap={() => {}}
       />
-      {/*       <BottomNav /> */}
+      {/* Uncomment if you want to include BottomNav */}
+      {/* <BottomNav /> */}
     </Box>
   );
 };
