@@ -8,6 +8,18 @@ import Modal from "./Modal";
 import BottomNav from "./BottomNav";
 import Svg7 from "../images/7.svg"; // Initial screen background image
 import logo from "../images/grandprix.svg";
+import Hiragino from "../assets/Hiragino-Kakugo-Pro W6.otf"
+
+// Import font using CSS @font-face
+const fontStyles = `
+  @font-face {
+    font-family: 'HiraginoBold';
+    src: url(${Hiragino}) format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+`;
 
 // Import all three videos and sound
 import Section1Video from "../assets/F1_RTT_movie1.mp4";
@@ -109,7 +121,7 @@ const preloadBackgroundImage = () => {
 };
 
 const japaneseFontStyle = {
-  fontFamily: 'JapaneseFont',
+  fontFamily: 'HiraginoBold',
 };
 
 const MissionBanner = ({
@@ -720,6 +732,9 @@ const RedLight: React.FC = () => {
       }}
       onTouchMove={(e) => e.preventDefault()}
     >
+      {/* Add style tag to inject the font-face declaration */}
+      <style dangerouslySetInnerHTML={{ __html: fontStyles }} />
+
       <Box
         sx={{
           position: "absolute",
@@ -1105,10 +1120,10 @@ const RedLight: React.FC = () => {
             margin: 0,
             marginBottom: "5px",
             fontWeight: "bold",
-            fontFamily: "'Hiragino Kaku Gothic Pro Bold'",
+            fontFamily: "'HiraginoBold'", // Using HiraginoBold font
           }}
         >
-          <span className=" ">リアクションタイムテスト</span>
+          リアクションタイムテスト
         </Box>
       </Box>
 

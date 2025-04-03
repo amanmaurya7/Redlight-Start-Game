@@ -5,11 +5,10 @@
   font-style: normal; /* Optional: specify style */
 }
 
+
 @font-face {
-  font-family: 'JapaneseFont';
-  src: url('./assets/Hiragino-Kakugo-Pro\ W6.otf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
+  font-family: 'HiraginoBold';
+  src: url('./assets/Hiragino-Kakugo-Pro\ W6.otf') format('opentype');
 }
 
 html, body {
