@@ -965,7 +965,8 @@ https://liff.line.me/2006572406-D3OkWx32?tcode=rCXml0000013431
         >
           <IconButton
             onClick={() => {
-              cleanupAfterShare(); // Use the comprehensive cleanup function
+              setShareModalOpen(false);
+              onRetry();
             }}
             sx={{
               position: "absolute",
